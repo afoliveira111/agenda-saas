@@ -50,3 +50,7 @@ next-env.d.ts
 .env
 .env.*
 !.env.example
+
+# local backups
+/backups/*.db
+!/backups/.gitkeep
