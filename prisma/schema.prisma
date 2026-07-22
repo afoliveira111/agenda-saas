@@ -1,0 +1,130 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Business {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  phone       String?
+  email       String?
+  notificationEmail String?
+  address     String?
+  description String?
+
+  services    Service[]
+  customers   Customer[]
+  bookings    Booking[]
+  workHours   WorkHour[]
+  blockedDays BlockedDay[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Service {
+  id          String   @id @default(cuid())
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id])
+
+  name        String
+  description String?
+  priceCents  Int
+  durationMin Int
+  active      Boolean  @default(true)
+
+  bookingServices BookingService[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Customer {
+  id          String   @id @default(cuid())
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id])
+
+  name        String
+  phone       String?
+  email       String?
+
+  bookings    Booking[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Booking {
+  id          String        @id @default(cuid())
+
+  businessId  String
+  business    Business      @relation(fields: [businessId], references: [id])
+
+  customerId  String
+  customer    Customer      @relation(fields: [customerId], references: [id])
+
+  startAt     DateTime
+  endAt       DateTime
+  status      BookingStatus @default(PENDING)
+
+  totalPriceCents  Int
+  totalDurationMin Int
+
+  notes       String?
+  reminderEmailSentAt DateTime?
+
+  services    BookingService[]
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model BookingService {
+  id          String   @id @default(cuid())
+
+  bookingId   String
+  booking     Booking  @relation(fields: [bookingId], references: [id])
+
+  serviceId   String
+  service     Service  @relation(fields: [serviceId], references: [id])
+
+  priceCents  Int
+  durationMin Int
+
+  createdAt   DateTime @default(now())
+
+  @@unique([bookingId, serviceId])
+}
+
+model WorkHour {
+  id          String   @id @default(cuid())
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id])
+
+  dayOfWeek   Int
+  startTime   String
+  endTime     String
+  active      Boolean @default(true)
+}
+
+model BlockedDay {
+  id          String   @id @default(cuid())
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id])
+
+  date        DateTime
+  reason      String?
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
