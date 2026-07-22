@@ -1,9 +1,9 @@
 import "dotenv/config"
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3"
+import { PrismaPg } from "@prisma/adapter-pg"
 import { PrismaClient } from "../src/generated/prisma/client"
 
-const adapter = new PrismaBetterSqlite3({
-  url: process.env.DATABASE_URL ?? "file:./dev.db",
+const adapter = new PrismaPg({
+  connectionString: process.env.DIRECT_DATABASE_URL ?? process.env.DATABASE_URL,
 })
 
 const prisma = new PrismaClient({ adapter })
@@ -64,55 +64,13 @@ async function main() {
 
   await prisma.workHour.createMany({
     data: [
-      {
-        businessId: business.id,
-        dayOfWeek: 1,
-        startTime: "09:00",
-        endTime: "18:00",
-        active: true,
-      },
-      {
-        businessId: business.id,
-        dayOfWeek: 2,
-        startTime: "09:00",
-        endTime: "18:00",
-        active: true,
-      },
-      {
-        businessId: business.id,
-        dayOfWeek: 3,
-        startTime: "09:00",
-        endTime: "18:00",
-        active: true,
-      },
-      {
-        businessId: business.id,
-        dayOfWeek: 4,
-        startTime: "09:00",
-        endTime: "18:00",
-        active: true,
-      },
-      {
-        businessId: business.id,
-        dayOfWeek: 5,
-        startTime: "09:00",
-        endTime: "18:00",
-        active: true,
-      },
-      {
-        businessId: business.id,
-        dayOfWeek: 6,
-        startTime: "09:00",
-        endTime: "13:00",
-        active: true,
-      },
-      {
-        businessId: business.id,
-        dayOfWeek: 0,
-        startTime: "09:00",
-        endTime: "13:00",
-        active: false,
-      },
+      { businessId: business.id, dayOfWeek: 1, startTime: "09:00", endTime: "18:00", active: true },
+      { businessId: business.id, dayOfWeek: 2, startTime: "09:00", endTime: "18:00", active: true },
+      { businessId: business.id, dayOfWeek: 3, startTime: "09:00", endTime: "18:00", active: true },
+      { businessId: business.id, dayOfWeek: 4, startTime: "09:00", endTime: "18:00", active: true },
+      { businessId: business.id, dayOfWeek: 5, startTime: "09:00", endTime: "18:00", active: true },
+      { businessId: business.id, dayOfWeek: 6, startTime: "09:00", endTime: "13:00", active: true },
+      { businessId: business.id, dayOfWeek: 0, startTime: "09:00", endTime: "13:00", active: false },
     ],
   })
 
