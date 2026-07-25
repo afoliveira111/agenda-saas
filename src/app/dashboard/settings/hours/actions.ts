@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { getCurrentBusinessSlug } from "@/lib/current-business"
+import { isAllowedTimeOption } from "@/lib/time-options"
 
 const weekDays = [
   {
@@ -76,19 +77,19 @@ function getTomorrowStart() {
   return tomorrow
 }
 
-async function getDemoBusiness() {
+async function getCurrentBusiness() {
   return prisma.business.findUnique({
     where: {
-      slug: (await getCurrentBusinessSlug()),
+      slug: await getCurrentBusinessSlug(),
     },
   })
 }
 
 export async function updateWorkHoursAction(formData: FormData) {
-  const business = await getDemoBusiness()
+  const business = await getCurrentBusiness()
 
   if (!business) {
-    redirectWithError("Negócio demo não encontrado. Rode o seed novamente.")
+    redirectWithError("Negócio não encontrado. Selecione outro negócio.")
   }
 
   const newWorkHours = weekDays.map((day) => {
@@ -101,13 +102,18 @@ export async function updateWorkHoursAction(formData: FormData) {
       normalizeText(formData.get(`end_${day.value}`)) || day.defaultEnd
 
     if (active) {
-      if (!isValidTime(startTime) || !isValidTime(endTime)) {
-        redirectWithError("Informe horários válidos no formato HH:MM.")
+      if (
+        !isValidTime(startTime) ||
+        !isValidTime(endTime) ||
+        !isAllowedTimeOption(startTime) ||
+        !isAllowedTimeOption(endTime)
+      ) {
+        redirectWithError("Selecione horários válidos.")
       }
 
       if (timeToMinutes(startTime) >= timeToMinutes(endTime)) {
         redirectWithError(
-          "O horário de início precisa ser menor que o horário de fim."
+          "O horário de início precisa ser menor que o horário de fim.",
         )
       }
     }
@@ -140,10 +146,10 @@ export async function updateWorkHoursAction(formData: FormData) {
 }
 
 export async function blockTodayAction() {
-  const business = await getDemoBusiness()
+  const business = await getCurrentBusiness()
 
   if (!business) {
-    redirectWithError("Negócio demo não encontrado.")
+    redirectWithError("Negócio não encontrado.")
   }
 
   const todayStart = getTodayStart()
@@ -173,15 +179,15 @@ export async function blockTodayAction() {
   revalidatePath(`/book/${business.slug}`)
 
   redirectWithSuccess(
-    "Agenda de hoje bloqueada. Novas marcações para hoje não aparecerão."
+    "Agenda de hoje bloqueada. Novas marcações para hoje não aparecerão.",
   )
 }
 
 export async function unblockTodayAction() {
-  const business = await getDemoBusiness()
+  const business = await getCurrentBusiness()
 
   if (!business) {
-    redirectWithError("Negócio demo não encontrado.")
+    redirectWithError("Negócio não encontrado.")
   }
 
   const todayStart = getTodayStart()

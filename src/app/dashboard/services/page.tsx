@@ -2,6 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { getCurrentBusinessSlug } from "@/lib/current-business"
+import { durationOptions, formatDuration } from "@/lib/format-duration"
 import {
   createServiceAction,
   deleteServiceAction,
@@ -25,6 +26,33 @@ function formatPrice(priceCents: number) {
 
 function formatPriceInput(priceCents: number) {
   return (priceCents / 100).toFixed(2)
+}
+
+type DurationSelectProps = {
+  name?: string
+  defaultValue?: number
+  className?: string
+}
+
+function DurationSelect({
+  name = "durationMin",
+  defaultValue = 60,
+  className = "",
+}: DurationSelectProps) {
+  return (
+    <select
+      name={name}
+      required
+      defaultValue={defaultValue}
+      className={`appearance-none rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-4 text-white outline-none transition focus:border-white ${className}`}
+    >
+      {durationOptions.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  )
 }
 
 type ServiceCardProps = {
@@ -66,7 +94,8 @@ function ServiceCard({ service }: ServiceCardProps) {
             </span>
 
             <span className="text-sm text-zinc-500">
-              {service.durationMin} min · {formatPrice(service.priceCents)}
+              {formatDuration(service.durationMin)} ·{" "}
+              {formatPrice(service.priceCents)}
             </span>
 
             {service._count.bookingServices > 0 && (
@@ -159,15 +188,9 @@ function ServiceCard({ service }: ServiceCardProps) {
                 Duração
               </label>
 
-              <input
-                type="number"
-                name="durationMin"
-                required
-                min="5"
-                max="600"
-                step="5"
+              <DurationSelect
                 defaultValue={service.durationMin}
-                className="mt-2 w-full rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-white"
+                className="mt-2 w-full py-3"
               />
             </div>
           </div>
@@ -203,7 +226,7 @@ export default async function DashboardServicesPage({
 
   const business = await prisma.business.findUnique({
     where: {
-      slug: (await getCurrentBusinessSlug()),
+      slug: await getCurrentBusinessSlug(),
     },
     include: {
       services: {
@@ -233,7 +256,7 @@ export default async function DashboardServicesPage({
   const activeServices = business.services.filter((service) => service.active)
   const inactiveServices = business.services.filter((service) => !service.active)
   const removableServices = business.services.filter(
-    (service) => service._count.bookingServices === 0
+    (service) => service._count.bookingServices === 0,
   )
 
   return (
@@ -379,16 +402,7 @@ export default async function DashboardServicesPage({
                     Duração
                   </label>
 
-                  <input
-                    type="number"
-                    name="durationMin"
-                    required
-                    min="5"
-                    max="600"
-                    step="5"
-                    placeholder="60"
-                    className="mt-2 w-full rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-4 text-white outline-none transition placeholder:text-zinc-700 focus:border-white"
-                  />
+                  <DurationSelect defaultValue={60} className="mt-2 w-full" />
                 </div>
               </div>
 

@@ -1,3 +1,5 @@
+import { formatDuration } from "@/lib/format-duration"
+
 type EmailRecipient = {
   email: string
   name?: string
@@ -40,6 +42,15 @@ type BookingCreatedEmailParams = {
   services: BookingEmailService[]
 }
 
+type BookingReminderEmailParams = BookingCreatedEmailParams
+
+type BookingRescheduledEmailParams = BookingCreatedEmailParams & {
+  previousBooking: {
+    startAt: Date
+    endAt: Date
+  }
+}
+
 const BREVO_API_URL = "https://api.brevo.com/v3/smtp/email"
 
 function escapeHtml(value: string) {
@@ -74,6 +85,17 @@ function formatTime(date: Date) {
   }).format(date)
 }
 
+function getBusinessNotificationEmail(
+  business: BookingCreatedEmailParams["business"],
+) {
+  return (
+    business.notificationEmail ||
+    business.email ||
+    process.env.BUSINESS_NOTIFICATION_EMAIL ||
+    ""
+  )
+}
+
 async function sendTransactionalEmail({
   to,
   subject,
@@ -86,7 +108,7 @@ async function sendTransactionalEmail({
 
   if (!apiKey || !senderEmail) {
     console.warn(
-      "E-mail ignorado: configure BREVO_API_KEY e BREVO_SENDER_EMAIL."
+      "E-mail ignorado: configure BREVO_API_KEY e BREVO_SENDER_EMAIL.",
     )
     return
   }
@@ -114,7 +136,7 @@ async function sendTransactionalEmail({
     const responseText = await response.text()
 
     throw new Error(
-      `Erro ao enviar e-mail pela Brevo: ${response.status} ${responseText}`
+      `Erro ao enviar e-mail pela Brevo: ${response.status} ${responseText}`,
     )
   }
 }
@@ -122,9 +144,9 @@ async function sendTransactionalEmail({
 function buildServicesText(services: BookingEmailService[]) {
   return services
     .map((service) => {
-      return `- ${service.name} (${service.durationMin} min) - ${formatPrice(
-        service.priceCents
-      )}`
+      return `- ${service.name} (${formatDuration(
+        service.durationMin,
+      )}) - ${formatPrice(service.priceCents)}`
     })
     .join("\n")
 }
@@ -136,7 +158,9 @@ function buildServicesHtml(services: BookingEmailService[]) {
         <tr>
           <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
             <strong>${escapeHtml(service.name)}</strong><br />
-            <span style="color: #71717a;">${service.durationMin} minutos</span>
+            <span style="color: #71717a;">${formatDuration(
+              service.durationMin,
+            )}</span>
           </td>
           <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb; text-align: right;">
             <strong>${formatPrice(service.priceCents)}</strong>
@@ -173,28 +197,31 @@ function createClientEmailHtml({
             <h2 style="margin: 0 0 16px; font-size: 20px;">Detalhes da marcação</h2>
 
             <p style="margin: 0 0 8px;"><strong>Data:</strong> ${formatDate(
-              booking.startAt
+              booking.startAt,
             )}</p>
             <p style="margin: 0 0 8px;"><strong>Horário:</strong> ${formatTime(
-              booking.startAt
+              booking.startAt,
             )} - ${formatTime(booking.endAt)}</p>
-            <p style="margin: 0 0 24px;"><strong>Duração total:</strong> ${
-              booking.totalDurationMin
-            } minutos</p>
+            <p style="margin: 0 0 24px;"><strong>Duração total:</strong> ${formatDuration(
+              booking.totalDurationMin,
+            )}</p>
 
             <table style="width: 100%; border-collapse: collapse;">
               ${buildServicesHtml(services)}
             </table>
 
-            <div style="margin-top: 24px; padding-top: 20px; border-top: 2px solid #18181b; display: flex; justify-content: space-between;">
-              <strong>Total estimado</strong>
-              <strong>${formatPrice(booking.totalPriceCents)}</strong>
+            <div style="margin-top: 24px; padding-top: 20px; border-top: 2px solid #18181b;">
+              <p style="margin: 0;">
+                <strong>Total estimado:</strong> ${formatPrice(
+                  booking.totalPriceCents,
+                )}
+              </p>
             </div>
 
             ${
               business.address
                 ? `<p style="margin: 24px 0 0;"><strong>Morada:</strong> ${escapeHtml(
-                    business.address
+                    business.address,
                   )}</p>`
                 : ""
             }
@@ -202,7 +229,7 @@ function createClientEmailHtml({
             ${
               business.phone
                 ? `<p style="margin: 8px 0 0;"><strong>Contacto:</strong> +${escapeHtml(
-                    business.phone
+                    business.phone,
                   )}</p>`
                 : ""
             }
@@ -230,7 +257,7 @@ A sua marcação em ${business.name} foi confirmada.
 
 Data: ${formatDate(booking.startAt)}
 Horário: ${formatTime(booking.startAt)} - ${formatTime(booking.endAt)}
-Duração total: ${booking.totalDurationMin} minutos
+Duração total: ${formatDuration(booking.totalDurationMin)}
 
 Serviços:
 ${buildServicesText(services)}
@@ -270,7 +297,7 @@ function createBusinessEmailHtml({
             <h2 style="margin: 0 0 16px; font-size: 20px;">Cliente</h2>
 
             <p style="margin: 0 0 8px;"><strong>Nome:</strong> ${escapeHtml(
-              customer.name
+              customer.name,
             )}</p>
             <p style="margin: 0 0 8px;"><strong>Telefone:</strong> ${
               customer.phone ? escapeHtml(customer.phone) : "Não informado"
@@ -282,22 +309,25 @@ function createBusinessEmailHtml({
             <h2 style="margin: 0 0 16px; font-size: 20px;">Marcação</h2>
 
             <p style="margin: 0 0 8px;"><strong>Data:</strong> ${formatDate(
-              booking.startAt
+              booking.startAt,
             )}</p>
             <p style="margin: 0 0 8px;"><strong>Horário:</strong> ${formatTime(
-              booking.startAt
+              booking.startAt,
             )} - ${formatTime(booking.endAt)}</p>
-            <p style="margin: 0 0 24px;"><strong>Duração total:</strong> ${
-              booking.totalDurationMin
-            } minutos</p>
+            <p style="margin: 0 0 24px;"><strong>Duração total:</strong> ${formatDuration(
+              booking.totalDurationMin,
+            )}</p>
 
             <table style="width: 100%; border-collapse: collapse;">
               ${buildServicesHtml(services)}
             </table>
 
-            <div style="margin-top: 24px; padding-top: 20px; border-top: 2px solid #18181b; display: flex; justify-content: space-between;">
-              <strong>Total estimado</strong>
-              <strong>${formatPrice(booking.totalPriceCents)}</strong>
+            <div style="margin-top: 24px; padding-top: 20px; border-top: 2px solid #18181b;">
+              <p style="margin: 0;">
+                <strong>Total estimado:</strong> ${formatPrice(
+                  booking.totalPriceCents,
+                )}
+              </p>
             </div>
           </div>
         </div>
@@ -323,7 +353,7 @@ E-mail: ${customer.email || "Não informado"}
 Marcação:
 Data: ${formatDate(booking.startAt)}
 Horário: ${formatTime(booking.startAt)} - ${formatTime(booking.endAt)}
-Duração total: ${booking.totalDurationMin} minutos
+Duração total: ${formatDuration(booking.totalDurationMin)}
 
 Serviços:
 ${buildServicesText(services)}
@@ -333,13 +363,12 @@ Total estimado: ${formatPrice(booking.totalPriceCents)}
 }
 
 export async function sendBookingCreatedEmails(
-  params: BookingCreatedEmailParams
+  params: BookingCreatedEmailParams,
 ) {
   const customerEmail = params.customer.email
-  const businessNotificationEmail =
-  params.business.notificationEmail ||
-  params.business.email ||
-  process.env.BUSINESS_NOTIFICATION_EMAIL
+  const businessNotificationEmail = getBusinessNotificationEmail(
+    params.business,
+  )
 
   const emailsToSend: Promise<void>[] = []
 
@@ -355,7 +384,7 @@ export async function sendBookingCreatedEmails(
         subject: `Confirmação da sua marcação - ${params.business.name}`,
         htmlContent: createClientEmailHtml(params),
         textContent: createClientEmailText(params),
-      })
+      }),
     )
   }
 
@@ -371,7 +400,7 @@ export async function sendBookingCreatedEmails(
         subject: `Nova marcação - ${params.customer.name}`,
         htmlContent: createBusinessEmailHtml(params),
         textContent: createBusinessEmailText(params),
-      })
+      }),
     )
   }
 
@@ -383,7 +412,6 @@ export async function sendBookingCreatedEmails(
     }
   })
 }
-type BookingReminderEmailParams = BookingCreatedEmailParams
 
 function createClientReminderEmailHtml({
   business,
@@ -411,16 +439,16 @@ function createClientReminderEmailHtml({
             <h2 style="margin: 0 0 16px; font-size: 20px;">Detalhes da marcação</h2>
 
             <p style="margin: 0 0 8px;"><strong>Data:</strong> ${formatDate(
-              booking.startAt
+              booking.startAt,
             )}</p>
 
             <p style="margin: 0 0 8px;"><strong>Horário:</strong> ${formatTime(
-              booking.startAt
+              booking.startAt,
             )} - ${formatTime(booking.endAt)}</p>
 
-            <p style="margin: 0 0 24px;"><strong>Duração total:</strong> ${
-              booking.totalDurationMin
-            } minutos</p>
+            <p style="margin: 0 0 24px;"><strong>Duração total:</strong> ${formatDuration(
+              booking.totalDurationMin,
+            )}</p>
 
             <table style="width: 100%; border-collapse: collapse;">
               ${buildServicesHtml(services)}
@@ -429,7 +457,7 @@ function createClientReminderEmailHtml({
             <div style="margin-top: 24px; padding-top: 20px; border-top: 2px solid #18181b;">
               <p style="margin: 0;">
                 <strong>Total estimado:</strong> ${formatPrice(
-                  booking.totalPriceCents
+                  booking.totalPriceCents,
                 )}
               </p>
             </div>
@@ -437,7 +465,7 @@ function createClientReminderEmailHtml({
             ${
               business.address
                 ? `<p style="margin: 24px 0 0;"><strong>Morada:</strong> ${escapeHtml(
-                    business.address
+                    business.address,
                   )}</p>`
                 : ""
             }
@@ -445,7 +473,7 @@ function createClientReminderEmailHtml({
             ${
               business.phone
                 ? `<p style="margin: 8px 0 0;"><strong>Contacto:</strong> +${escapeHtml(
-                    business.phone
+                    business.phone,
                   )}</p>`
                 : ""
             }
@@ -473,7 +501,7 @@ Este é um lembrete da sua marcação em ${business.name}.
 
 Data: ${formatDate(booking.startAt)}
 Horário: ${formatTime(booking.startAt)} - ${formatTime(booking.endAt)}
-Duração total: ${booking.totalDurationMin} minutos
+Duração total: ${formatDuration(booking.totalDurationMin)}
 
 Serviços:
 ${buildServicesText(services)}
@@ -488,7 +516,7 @@ Caso precise alterar ou cancelar, entre em contacto diretamente com o estabeleci
 }
 
 export async function sendBookingReminderEmail(
-  params: BookingReminderEmailParams
+  params: BookingReminderEmailParams,
 ) {
   const customerEmail = params.customer.email
 
@@ -514,4 +542,281 @@ export async function sendBookingReminderEmail(
     console.error("Falha ao enviar lembrete por e-mail:", error)
     return false
   }
+}
+
+function createClientRescheduledEmailHtml({
+  business,
+  customer,
+  booking,
+  previousBooking,
+  services,
+}: BookingRescheduledEmailParams) {
+  return `
+    <div style="margin: 0; padding: 0; background: #f4f4f5; font-family: Arial, sans-serif; color: #18181b;">
+      <div style="max-width: 620px; margin: 0 auto; padding: 32px 16px;">
+        <div style="background: #ffffff; border-radius: 24px; overflow: hidden; border: 1px solid #e5e7eb;">
+          <div style="background: #09090b; padding: 32px; color: #ffffff;">
+            <p style="margin: 0; font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: #a1a1aa;">
+              Marcação reagendada
+            </p>
+            <h1 style="margin: 16px 0 0; font-size: 28px;">
+              Olá, ${escapeHtml(customer.name)}
+            </h1>
+            <p style="margin: 16px 0 0; color: #d4d4d8;">
+              A sua marcação em ${escapeHtml(business.name)} foi reagendada com sucesso.
+            </p>
+          </div>
+
+          <div style="padding: 32px;">
+            <h2 style="margin: 0 0 16px; font-size: 20px;">Novo horário da marcação</h2>
+
+            <p style="margin: 0 0 8px;"><strong>Nova data:</strong> ${formatDate(
+              booking.startAt,
+            )}</p>
+            <p style="margin: 0 0 8px;"><strong>Novo horário:</strong> ${formatTime(
+              booking.startAt,
+            )} - ${formatTime(booking.endAt)}</p>
+            <p style="margin: 0 0 24px;"><strong>Duração total:</strong> ${formatDuration(
+              booking.totalDurationMin,
+            )}</p>
+
+            <div style="margin: 0 0 24px; padding: 16px; border-radius: 16px; background: #f4f4f5; border: 1px solid #e5e7eb;">
+              <p style="margin: 0 0 8px; color: #71717a;"><strong>Horário anterior:</strong></p>
+              <p style="margin: 0; color: #3f3f46;">
+                ${formatDate(previousBooking.startAt)} · ${formatTime(
+                  previousBooking.startAt,
+                )} - ${formatTime(previousBooking.endAt)}
+              </p>
+            </div>
+
+            <table style="width: 100%; border-collapse: collapse;">
+              ${buildServicesHtml(services)}
+            </table>
+
+            <div style="margin-top: 24px; padding-top: 20px; border-top: 2px solid #18181b;">
+              <p style="margin: 0;">
+                <strong>Total estimado:</strong> ${formatPrice(
+                  booking.totalPriceCents,
+                )}
+              </p>
+            </div>
+
+            ${
+              business.address
+                ? `<p style="margin: 24px 0 0;"><strong>Morada:</strong> ${escapeHtml(
+                    business.address,
+                  )}</p>`
+                : ""
+            }
+
+            ${
+              business.phone
+                ? `<p style="margin: 8px 0 0;"><strong>Contacto:</strong> +${escapeHtml(
+                    business.phone,
+                  )}</p>`
+                : ""
+            }
+
+            <p style="margin: 28px 0 0; color: #71717a; font-size: 14px;">
+              Guarde este novo horário. Caso precise alterar novamente ou cancelar, entre em contacto diretamente com o estabelecimento.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  `
+}
+
+function createClientRescheduledEmailText({
+  business,
+  customer,
+  booking,
+  previousBooking,
+  services,
+}: BookingRescheduledEmailParams) {
+  return `
+Olá, ${customer.name}.
+
+A sua marcação em ${business.name} foi reagendada com sucesso.
+
+Novo horário:
+Data: ${formatDate(booking.startAt)}
+Horário: ${formatTime(booking.startAt)} - ${formatTime(booking.endAt)}
+Duração total: ${formatDuration(booking.totalDurationMin)}
+
+Horário anterior:
+${formatDate(previousBooking.startAt)} · ${formatTime(
+  previousBooking.startAt,
+)} - ${formatTime(previousBooking.endAt)}
+
+Serviços:
+${buildServicesText(services)}
+
+Total estimado: ${formatPrice(booking.totalPriceCents)}
+
+${business.address ? `Morada: ${business.address}` : ""}
+${business.phone ? `Contacto: +${business.phone}` : ""}
+
+Guarde este novo horário. Caso precise alterar novamente ou cancelar, entre em contacto diretamente com o estabelecimento.
+`.trim()
+}
+
+function createBusinessRescheduledEmailHtml({
+  business,
+  customer,
+  booking,
+  previousBooking,
+  services,
+}: BookingRescheduledEmailParams) {
+  return `
+    <div style="margin: 0; padding: 0; background: #f4f4f5; font-family: Arial, sans-serif; color: #18181b;">
+      <div style="max-width: 620px; margin: 0 auto; padding: 32px 16px;">
+        <div style="background: #ffffff; border-radius: 24px; overflow: hidden; border: 1px solid #e5e7eb;">
+          <div style="background: #09090b; padding: 32px; color: #ffffff;">
+            <p style="margin: 0; font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: #a1a1aa;">
+              Marcação reagendada
+            </p>
+            <h1 style="margin: 16px 0 0; font-size: 28px;">
+              ${escapeHtml(customer.name)}
+            </h1>
+            <p style="margin: 16px 0 0; color: #d4d4d8;">
+              Uma marcação foi reagendada em ${escapeHtml(business.name)}.
+            </p>
+          </div>
+
+          <div style="padding: 32px;">
+            <h2 style="margin: 0 0 16px; font-size: 20px;">Cliente</h2>
+
+            <p style="margin: 0 0 8px;"><strong>Nome:</strong> ${escapeHtml(
+              customer.name,
+            )}</p>
+            <p style="margin: 0 0 8px;"><strong>Telefone:</strong> ${
+              customer.phone ? escapeHtml(customer.phone) : "Não informado"
+            }</p>
+            <p style="margin: 0 0 24px;"><strong>E-mail:</strong> ${
+              customer.email ? escapeHtml(customer.email) : "Não informado"
+            }</p>
+
+            <h2 style="margin: 0 0 16px; font-size: 20px;">Novo horário</h2>
+
+            <p style="margin: 0 0 8px;"><strong>Nova data:</strong> ${formatDate(
+              booking.startAt,
+            )}</p>
+            <p style="margin: 0 0 8px;"><strong>Novo horário:</strong> ${formatTime(
+              booking.startAt,
+            )} - ${formatTime(booking.endAt)}</p>
+
+            <div style="margin: 16px 0 24px; padding: 16px; border-radius: 16px; background: #f4f4f5; border: 1px solid #e5e7eb;">
+              <p style="margin: 0 0 8px; color: #71717a;"><strong>Horário anterior:</strong></p>
+              <p style="margin: 0; color: #3f3f46;">
+                ${formatDate(previousBooking.startAt)} · ${formatTime(
+                  previousBooking.startAt,
+                )} - ${formatTime(previousBooking.endAt)}
+              </p>
+            </div>
+
+            <p style="margin: 0 0 24px;"><strong>Duração total:</strong> ${formatDuration(
+              booking.totalDurationMin,
+            )}</p>
+
+            <table style="width: 100%; border-collapse: collapse;">
+              ${buildServicesHtml(services)}
+            </table>
+
+            <div style="margin-top: 24px; padding-top: 20px; border-top: 2px solid #18181b;">
+              <p style="margin: 0;">
+                <strong>Total estimado:</strong> ${formatPrice(
+                  booking.totalPriceCents,
+                )}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `
+}
+
+function createBusinessRescheduledEmailText({
+  business,
+  customer,
+  booking,
+  previousBooking,
+  services,
+}: BookingRescheduledEmailParams) {
+  return `
+Marcação reagendada em ${business.name}.
+
+Cliente:
+Nome: ${customer.name}
+Telefone: ${customer.phone || "Não informado"}
+E-mail: ${customer.email || "Não informado"}
+
+Novo horário:
+Data: ${formatDate(booking.startAt)}
+Horário: ${formatTime(booking.startAt)} - ${formatTime(booking.endAt)}
+
+Horário anterior:
+${formatDate(previousBooking.startAt)} · ${formatTime(
+  previousBooking.startAt,
+)} - ${formatTime(previousBooking.endAt)}
+
+Duração total: ${formatDuration(booking.totalDurationMin)}
+
+Serviços:
+${buildServicesText(services)}
+
+Total estimado: ${formatPrice(booking.totalPriceCents)}
+`.trim()
+}
+
+export async function sendBookingRescheduledEmails(
+  params: BookingRescheduledEmailParams,
+) {
+  const customerEmail = params.customer.email
+  const businessNotificationEmail = getBusinessNotificationEmail(
+    params.business,
+  )
+
+  const emailsToSend: Promise<void>[] = []
+
+  if (customerEmail) {
+    emailsToSend.push(
+      sendTransactionalEmail({
+        to: [
+          {
+            email: customerEmail,
+            name: params.customer.name,
+          },
+        ],
+        subject: `A sua marcação foi reagendada - ${params.business.name}`,
+        htmlContent: createClientRescheduledEmailHtml(params),
+        textContent: createClientRescheduledEmailText(params),
+      }),
+    )
+  }
+
+  if (businessNotificationEmail) {
+    emailsToSend.push(
+      sendTransactionalEmail({
+        to: [
+          {
+            email: businessNotificationEmail,
+            name: params.business.name,
+          },
+        ],
+        subject: `Marcação reagendada - ${params.customer.name}`,
+        htmlContent: createBusinessRescheduledEmailHtml(params),
+        textContent: createBusinessRescheduledEmailText(params),
+      }),
+    )
+  }
+
+  const results = await Promise.allSettled(emailsToSend)
+
+  results.forEach((result) => {
+    if (result.status === "rejected") {
+      console.error("Falha ao enviar e-mail de reagendamento:", result.reason)
+    }
+  })
 }

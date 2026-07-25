@@ -2,6 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { getCurrentBusinessSlug } from "@/lib/current-business"
+import { timeOptions } from "@/lib/time-options"
 import {
   blockTodayAction,
   unblockTodayAction,
@@ -74,7 +75,7 @@ function getWorkHourForDay(
     endTime: string
     active: boolean
   }>,
-  dayOfWeek: number
+  dayOfWeek: number,
 ) {
   return workHours.find((workHour) => workHour.dayOfWeek === dayOfWeek)
 }
@@ -91,6 +92,32 @@ function getTomorrowStart() {
   return tomorrow
 }
 
+function TimeSelect({
+  name,
+  defaultValue,
+}: {
+  name: string
+  defaultValue: string
+}) {
+  const options = timeOptions.includes(defaultValue)
+    ? timeOptions
+    : [defaultValue, ...timeOptions]
+
+  return (
+    <select
+      name={name}
+      defaultValue={defaultValue}
+      className="mt-2 w-full rounded-2xl border border-zinc-800 bg-black px-4 py-3 text-white outline-none transition focus:border-white"
+    >
+      {options.map((option) => (
+        <option key={option} value={option}>
+          {option}
+        </option>
+      ))}
+    </select>
+  )
+}
+
 export default async function DashboardHoursPage({
   searchParams,
 }: HoursPageProps) {
@@ -98,7 +125,7 @@ export default async function DashboardHoursPage({
 
   const business = await prisma.business.findUnique({
     where: {
-      slug: (await getCurrentBusinessSlug()),
+      slug: await getCurrentBusinessSlug(),
     },
     include: {
       workHours: {
@@ -115,7 +142,6 @@ export default async function DashboardHoursPage({
   }
 
   const hasSavedWorkHours = business.workHours.length > 0
-
   const activeDays = business.workHours.filter((workHour) => workHour.active)
 
   const todayStart = getTodayStart()
@@ -256,7 +282,7 @@ export default async function DashboardHoursPage({
               <h2 className="mt-3 text-2xl font-bold">Configurar horários</h2>
 
               <p className="mt-3 max-w-2xl text-sm text-zinc-500">
-                Marque os dias em que o negócio atende e defina o horário de
+                Marque os dias em que o negócio atende e escolha o horário de
                 início e fim. Dias desmarcados aparecem como indisponíveis.
               </p>
             </div>
@@ -273,7 +299,7 @@ export default async function DashboardHoursPage({
             {weekDays.map((day) => {
               const workHour = getWorkHourForDay(
                 business.workHours,
-                day.value
+                day.value,
               )
 
               const isActive = hasSavedWorkHours
@@ -310,11 +336,9 @@ export default async function DashboardHoursPage({
                       Início
                     </label>
 
-                    <input
-                      type="time"
+                    <TimeSelect
                       name={`start_${day.value}`}
                       defaultValue={startTime}
-                      className="mt-2 w-full rounded-2xl border border-zinc-800 bg-black px-4 py-3 text-white outline-none transition focus:border-white"
                     />
                   </div>
 
@@ -323,11 +347,9 @@ export default async function DashboardHoursPage({
                       Fim
                     </label>
 
-                    <input
-                      type="time"
+                    <TimeSelect
                       name={`end_${day.value}`}
                       defaultValue={endTime}
-                      className="mt-2 w-full rounded-2xl border border-zinc-800 bg-black px-4 py-3 text-white outline-none transition focus:border-white"
                     />
                   </div>
                 </div>

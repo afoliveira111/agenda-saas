@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { getCurrentBusinessSlug } from "@/lib/current-business"
+import { normalizeBusinessTheme } from "@/lib/business-theme"
 
 function redirectWithError(message: string): never {
   redirect(`/dashboard/settings/business?error=${encodeURIComponent(message)}`)
@@ -42,6 +43,7 @@ export async function updateBusinessSettingsAction(formData: FormData) {
   const notificationEmailRaw = normalizeText(formData.get("notificationEmail"))
   const address = normalizeText(formData.get("address"))
   const description = normalizeText(formData.get("description"))
+  const theme = normalizeBusinessTheme(normalizeText(formData.get("theme")))
 
   const phone = phoneRaw ? normalizePhone(phoneRaw) : ""
   const email = emailRaw.toLowerCase()
@@ -65,12 +67,12 @@ export async function updateBusinessSettingsAction(formData: FormData) {
 
   const business = await prisma.business.findUnique({
     where: {
-      slug: (await getCurrentBusinessSlug()),
+      slug: await getCurrentBusinessSlug(),
     },
   })
 
   if (!business) {
-    redirectWithError("Negócio demo não encontrado. Rode o seed novamente.")
+    redirectWithError("Negócio não encontrado. Selecione outro negócio.")
   }
 
   await prisma.business.update({
@@ -84,6 +86,7 @@ export async function updateBusinessSettingsAction(formData: FormData) {
       notificationEmail: notificationEmail || null,
       address: address || null,
       description: description || null,
+      theme,
     },
   })
 

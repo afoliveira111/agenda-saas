@@ -16,6 +16,7 @@ model Business {
   notificationEmail String?
   address           String?
   description       String?
+  theme             String   @default("LUXURY")
 
   services    Service[]
   customers   Customer[]

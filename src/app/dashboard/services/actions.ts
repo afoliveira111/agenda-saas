@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { getCurrentBusinessSlug } from "@/lib/current-business"
+import { durationOptions } from "@/lib/format-duration"
 
 function redirectWithError(message: string): never {
   redirect(`/dashboard/services?error=${encodeURIComponent(message)}`)
@@ -34,22 +35,23 @@ function parsePriceToCents(value: string) {
 
 function parseDuration(value: string) {
   const duration = Number(value)
+  const allowedDurations = durationOptions.map((option) => option.value)
 
   if (!Number.isInteger(duration)) {
     return null
   }
 
-  if (duration < 5 || duration > 600) {
+  if (!allowedDurations.includes(duration)) {
     return null
   }
 
   return duration
 }
 
-async function getDemoBusiness() {
+async function getCurrentBusiness() {
   return prisma.business.findUnique({
     where: {
-      slug: (await getCurrentBusinessSlug()),
+      slug: await getCurrentBusinessSlug(),
     },
   })
 }
@@ -73,13 +75,13 @@ export async function createServiceAction(formData: FormData) {
   const durationMin = parseDuration(durationRaw)
 
   if (durationMin === null) {
-    redirectWithError("A duração deve estar entre 5 e 600 minutos.")
+    redirectWithError("Selecione uma duração válida para o serviço.")
   }
 
-  const business = await getDemoBusiness()
+  const business = await getCurrentBusiness()
 
   if (!business) {
-    redirectWithError("Negócio demo não encontrado. Rode o seed novamente.")
+    redirectWithError("Negócio não encontrado. Selecione outro negócio.")
   }
 
   await prisma.service.create({
@@ -124,13 +126,13 @@ export async function updateServiceAction(formData: FormData) {
   const durationMin = parseDuration(durationRaw)
 
   if (durationMin === null) {
-    redirectWithError("A duração deve estar entre 5 e 600 minutos.")
+    redirectWithError("Selecione uma duração válida para o serviço.")
   }
 
-  const business = await getDemoBusiness()
+  const business = await getCurrentBusiness()
 
   if (!business) {
-    redirectWithError("Negócio demo não encontrado.")
+    redirectWithError("Negócio não encontrado.")
   }
 
   const service = await prisma.service.findFirst({
@@ -173,10 +175,10 @@ export async function toggleServiceActiveAction(formData: FormData) {
 
   const nextActive = activeRaw === "true"
 
-  const business = await getDemoBusiness()
+  const business = await getCurrentBusiness()
 
   if (!business) {
-    redirectWithError("Negócio demo não encontrado.")
+    redirectWithError("Negócio não encontrado.")
   }
 
   const service = await prisma.service.findFirst({
@@ -204,7 +206,7 @@ export async function toggleServiceActiveAction(formData: FormData) {
   revalidatePath("/dashboard")
 
   redirectWithSuccess(
-    nextActive ? "Serviço ativado com sucesso." : "Serviço desativado com sucesso."
+    nextActive ? "Serviço ativado com sucesso." : "Serviço desativado com sucesso.",
   )
 }
 
@@ -215,10 +217,10 @@ export async function deleteServiceAction(formData: FormData) {
     redirectWithError("Serviço não encontrado.")
   }
 
-  const business = await getDemoBusiness()
+  const business = await getCurrentBusiness()
 
   if (!business) {
-    redirectWithError("Negócio demo não encontrado.")
+    redirectWithError("Negócio não encontrado.")
   }
 
   const service = await prisma.service.findFirst({
@@ -241,7 +243,7 @@ export async function deleteServiceAction(formData: FormData) {
 
   if (service._count.bookingServices > 0) {
     redirectWithError(
-      "Este serviço já foi usado em marcações. Para manter o histórico, apenas desative o serviço."
+      "Este serviço já foi usado em marcações. Para manter o histórico, apenas desative o serviço.",
     )
   }
 

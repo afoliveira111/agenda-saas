@@ -1,6 +1,8 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
+import { getPublicThemeClasses } from "@/lib/business-theme"
+import { formatDuration } from "@/lib/format-duration"
 import { BookingCustomerForm } from "./BookingCustomerForm"
 
 type BookingPageProps = {
@@ -75,7 +77,7 @@ function combineDateAndTime(date: Date, time: string) {
 function hasBookingConflict(
   slotStart: Date,
   slotEnd: Date,
-  bookings: Array<{ startAt: Date; endAt: Date }>
+  bookings: Array<{ startAt: Date; endAt: Date }>,
 ) {
   return bookings.some((booking) => {
     return slotStart < booking.endAt && slotEnd > booking.startAt
@@ -162,25 +164,27 @@ export default async function BookingPage({
     notFound()
   }
 
+  const theme = getPublicThemeClasses(business.theme)
+
   const selectedServices = business.services.filter((service) =>
-    selectedServiceIds.includes(service.id)
+    selectedServiceIds.includes(service.id),
   )
 
   const totalPriceCents = selectedServices.reduce(
     (total, service) => total + service.priceCents,
-    0
+    0,
   )
 
   const totalDurationMin = selectedServices.reduce(
     (total, service) => total + service.durationMin,
-    0
+    0,
   )
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
   const blockedDateParams = business.blockedDays.map((blockedDay) =>
-    formatDateParam(blockedDay.date)
+    formatDateParam(blockedDay.date),
   )
 
   const availableDates = Array.from({ length: 21 }, (_, index) => {
@@ -191,7 +195,7 @@ export default async function BookingPage({
     const dayOfWeek = currentDate.getDay()
 
     const hasWorkHour = business.workHours.some(
-      (workHour) => workHour.dayOfWeek === dayOfWeek
+      (workHour) => workHour.dayOfWeek === dayOfWeek,
     )
 
     const isBlocked = blockedDateParams.includes(dateParam)
@@ -214,7 +218,7 @@ export default async function BookingPage({
     const isBlocked = blockedDateParams.includes(selectedDateParam)
 
     const workHour = business.workHours.find(
-      (item) => item.dayOfWeek === selectedDayOfWeek
+      (item) => item.dayOfWeek === selectedDayOfWeek,
     )
 
     if (workHour && !isBlocked) {
@@ -261,7 +265,7 @@ export default async function BookingPage({
         const hasConflict = hasBookingConflict(
           slotStart,
           slotEnd,
-          existingBookings
+          existingBookings,
         )
 
         if (!isPast && !hasConflict) {
@@ -274,58 +278,60 @@ export default async function BookingPage({
   }
 
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main className={`min-h-screen ${theme.page}`}>
       <section className="mx-auto max-w-4xl px-5 py-8 sm:px-6 sm:py-12">
-        <div className="overflow-hidden rounded-[2rem] border border-zinc-800 bg-gradient-to-br from-zinc-900 via-zinc-950 to-black shadow-2xl">
-          <div className="border-b border-zinc-800 px-6 py-8 sm:px-8">
+        <div className={`overflow-hidden rounded-[2rem] border shadow-2xl ${theme.cardStrong}`}>
+          <div className="border-b border-current/10 px-6 py-8 sm:px-8">
             <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-zinc-500">
+                <p className={`text-xs font-semibold uppercase tracking-[0.35em] ${theme.muted}`}>
                   Marcação online
                 </p>
 
-                <h1 className="mt-4 text-4xl font-bold tracking-tight text-white sm:text-5xl">
+                <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl">
                   {business.name}
                 </h1>
 
                 {business.description && (
-                  <p className="mt-4 max-w-2xl text-zinc-400">
+                  <p className={`mt-4 max-w-2xl ${theme.muted}`}>
                     {business.description}
                   </p>
                 )}
               </div>
 
-              <div className="rounded-2xl border border-zinc-800 bg-black/40 px-4 py-3 text-sm text-zinc-400">
-                <p className="font-medium text-zinc-200">Reserva simples</p>
-                <p className="mt-1">Escolha serviços, data e horário.</p>
+              <div className={`rounded-2xl border px-4 py-3 text-sm ${theme.card}`}>
+                <p className="font-semibold">Reserva simples</p>
+                <p className={`mt-1 ${theme.muted}`}>
+                  Escolha serviços, data e horário.
+                </p>
               </div>
             </div>
 
-            <div className="mt-8 grid gap-3 text-sm text-zinc-500 sm:grid-cols-3">
+            <div className={`mt-8 grid gap-3 text-sm sm:grid-cols-3 ${theme.muted}`}>
               {business.address && (
-                <div className="rounded-2xl border border-zinc-800 bg-black/30 p-4">
-                  <p className="text-xs uppercase tracking-[0.25em] text-zinc-600">
+                <div className={`rounded-2xl border p-4 ${theme.card}`}>
+                  <p className="text-xs uppercase tracking-[0.25em] opacity-60">
                     Local
                   </p>
-                  <p className="mt-2 text-zinc-300">{business.address}</p>
+                  <p className="mt-2 font-medium">{business.address}</p>
                 </div>
               )}
 
               {business.phone && (
-                <div className="rounded-2xl border border-zinc-800 bg-black/30 p-4">
-                  <p className="text-xs uppercase tracking-[0.25em] text-zinc-600">
+                <div className={`rounded-2xl border p-4 ${theme.card}`}>
+                  <p className="text-xs uppercase tracking-[0.25em] opacity-60">
                     Telefone
                   </p>
-                  <p className="mt-2 text-zinc-300">+{business.phone}</p>
+                  <p className="mt-2 font-medium">+{business.phone}</p>
                 </div>
               )}
 
               {business.email && (
-                <div className="rounded-2xl border border-zinc-800 bg-black/30 p-4">
-                  <p className="text-xs uppercase tracking-[0.25em] text-zinc-600">
+                <div className={`rounded-2xl border p-4 ${theme.card}`}>
+                  <p className="text-xs uppercase tracking-[0.25em] opacity-60">
                     E-mail
                   </p>
-                  <p className="mt-2 text-zinc-300">{business.email}</p>
+                  <p className="mt-2 font-medium">{business.email}</p>
                 </div>
               )}
             </div>
@@ -335,15 +341,15 @@ export default async function BookingPage({
             <div id="servicos" className="scroll-mt-8">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-zinc-500">
+                  <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.muted}`}>
                     Passo 1
                   </p>
 
-                  <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white">
+                  <h2 className="mt-3 text-2xl font-semibold tracking-tight">
                     Escolha os serviços
                   </h2>
 
-                  <p className="mt-2 text-zinc-500">
+                  <p className={`mt-2 ${theme.muted}`}>
                     Pode escolher um ou mais serviços para a mesma marcação.
                   </p>
                 </div>
@@ -351,7 +357,7 @@ export default async function BookingPage({
                 {selectedServices.length > 0 && (
                   <Link
                     href={`/book/${business.slug}#servicos`}
-                    className="rounded-2xl border border-zinc-700 px-4 py-3 text-center text-sm font-semibold text-zinc-300 transition hover:border-white hover:text-white"
+                    className={`rounded-2xl border px-4 py-3 text-center text-sm font-semibold transition ${theme.secondaryButton}`}
                   >
                     Limpar seleção
                   </Link>
@@ -364,7 +370,7 @@ export default async function BookingPage({
 
                   const nextSelectedServiceIds = toggleServiceId(
                     selectedServiceIds,
-                    service.id
+                    service.id,
                   )
 
                   return (
@@ -378,20 +384,14 @@ export default async function BookingPage({
                       })}
                       className={`group block rounded-3xl border p-5 transition ${
                         isSelected
-                          ? "border-white bg-white text-zinc-950 shadow-xl shadow-white/10"
-                          : "border-zinc-800 bg-zinc-950 text-white hover:border-zinc-500"
+                          ? `${theme.primaryButton} shadow-xl`
+                          : `${theme.card} hover:scale-[1.01]`
                       }`}
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div>
                           <div className="flex items-center gap-3">
-                            <div
-                              className={`flex h-7 w-7 items-center justify-center rounded-full border text-sm font-bold ${
-                                isSelected
-                                  ? "border-zinc-950 bg-zinc-950 text-white"
-                                  : "border-zinc-700 bg-black text-zinc-600 group-hover:border-zinc-400"
-                              }`}
-                            >
+                            <div className="flex h-7 w-7 items-center justify-center rounded-full border border-current text-sm font-bold">
                               {isSelected ? "✓" : ""}
                             </div>
 
@@ -401,26 +401,18 @@ export default async function BookingPage({
                           </div>
 
                           {service.description && (
-                            <p
-                              className={`mt-3 text-sm ${
-                                isSelected ? "text-zinc-700" : "text-zinc-500"
-                              }`}
-                            >
+                            <p className="mt-3 text-sm opacity-75">
                               {service.description}
                             </p>
                           )}
 
-                          <p className="mt-3 text-sm text-zinc-600">
-                            Duração: {service.durationMin} minutos
+                          <p className="mt-3 text-sm opacity-70">
+                            Duração: {formatDuration(service.durationMin)}
                           </p>
                         </div>
 
                         <div className="text-right">
-                          <p
-                            className={`text-lg font-bold ${
-                              isSelected ? "text-zinc-950" : "text-white"
-                            }`}
-                          >
+                          <p className="text-lg font-bold">
                             {formatPrice(service.priceCents)}
                           </p>
                         </div>
@@ -434,9 +426,9 @@ export default async function BookingPage({
             {selectedServices.length > 0 && (
               <div
                 id="resumo"
-                className="mt-10 scroll-mt-8 rounded-[2rem] border border-zinc-700 bg-gradient-to-br from-zinc-900 to-black p-6 shadow-xl"
+                className={`mt-10 scroll-mt-8 rounded-[2rem] border p-6 shadow-xl ${theme.card}`}
               >
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-zinc-500">
+                <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.muted}`}>
                   Resumo
                 </p>
 
@@ -450,10 +442,10 @@ export default async function BookingPage({
                   {selectedServices.map((service) => (
                     <div
                       key={service.id}
-                      className="flex justify-between gap-4 border-b border-zinc-800 pb-3 text-sm text-zinc-300 last:border-b-0 last:pb-0"
+                      className="flex justify-between gap-4 border-b border-current/10 pb-3 text-sm last:border-b-0 last:pb-0"
                     >
                       <span>{service.name}</span>
-                      <span className="font-medium text-white">
+                      <span className="font-semibold">
                         {formatPrice(service.priceCents)}
                       </span>
                     </div>
@@ -461,17 +453,17 @@ export default async function BookingPage({
                 </div>
 
                 <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-2xl border border-zinc-800 bg-black p-4">
-                    <p className="text-xs uppercase tracking-[0.25em] text-zinc-600">
+                  <div className={`rounded-2xl border p-4 ${theme.cardStrong}`}>
+                    <p className={`text-xs uppercase tracking-[0.25em] ${theme.muted}`}>
                       Duração total
                     </p>
                     <p className="mt-2 text-xl font-semibold">
-                      {totalDurationMin} minutos
+                      {formatDuration(totalDurationMin)}
                     </p>
                   </div>
 
-                  <div className="rounded-2xl border border-zinc-800 bg-black p-4">
-                    <p className="text-xs uppercase tracking-[0.25em] text-zinc-600">
+                  <div className={`rounded-2xl border p-4 ${theme.cardStrong}`}>
+                    <p className={`text-xs uppercase tracking-[0.25em] ${theme.muted}`}>
                       Total estimado
                     </p>
                     <p className="mt-2 text-xl font-semibold">
@@ -484,7 +476,7 @@ export default async function BookingPage({
 
             {selectedServices.length > 0 && (
               <div id="datas" className="mt-10 scroll-mt-8">
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-zinc-500">
+                <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.muted}`}>
                   Passo 2
                 </p>
 
@@ -492,7 +484,7 @@ export default async function BookingPage({
                   Escolha uma data
                 </h2>
 
-                <p className="mt-2 text-zinc-500">
+                <p className={`mt-2 ${theme.muted}`}>
                   Apenas os dias com atendimento disponível ficam selecionáveis.
                 </p>
 
@@ -504,7 +496,7 @@ export default async function BookingPage({
                       return (
                         <div
                           key={item.dateParam}
-                          className="rounded-2xl border border-zinc-900 bg-zinc-950/60 px-4 py-4 text-center text-sm text-zinc-700"
+                          className={`rounded-2xl border px-4 py-4 text-center text-sm opacity-40 ${theme.card}`}
                         >
                           {item.label}
                           <div className="mt-1 text-xs">Indisponível</div>
@@ -523,8 +515,8 @@ export default async function BookingPage({
                         })}
                         className={`rounded-2xl border px-4 py-4 text-center text-sm font-semibold transition ${
                           isSelected
-                            ? "border-white bg-white text-zinc-950 shadow-lg shadow-white/10"
-                            : "border-zinc-800 bg-zinc-950 text-zinc-200 hover:border-zinc-500"
+                            ? `${theme.primaryButton} shadow-lg`
+                            : `${theme.card} hover:scale-[1.01]`
                         }`}
                       >
                         {item.label}
@@ -537,7 +529,7 @@ export default async function BookingPage({
 
             {selectedServices.length > 0 && date && (
               <div id="horarios" className="mt-10 scroll-mt-8">
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-zinc-500">
+                <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.muted}`}>
                   Passo 3
                 </p>
 
@@ -545,7 +537,7 @@ export default async function BookingPage({
                   Escolha um horário
                 </h2>
 
-                <p className="mt-2 text-zinc-500">
+                <p className={`mt-2 ${theme.muted}`}>
                   Horários ocupados ou incompatíveis com a duração total não
                   aparecem.
                 </p>
@@ -567,8 +559,8 @@ export default async function BookingPage({
                           })}
                           className={`rounded-2xl border px-4 py-4 text-center font-semibold transition ${
                             isSelected
-                              ? "border-white bg-white text-zinc-950 shadow-lg shadow-white/10"
-                              : "border-zinc-800 bg-zinc-950 text-zinc-200 hover:border-zinc-500"
+                              ? `${theme.primaryButton} shadow-lg`
+                              : `${theme.card} hover:scale-[1.01]`
                           }`}
                         >
                           {slot}
@@ -577,8 +569,10 @@ export default async function BookingPage({
                     })}
                   </div>
                 ) : (
-                  <div className="mt-6 rounded-3xl border border-zinc-800 bg-zinc-950 p-6 text-zinc-500">
-                    Não existem horários disponíveis para esta data.
+                  <div className={`mt-6 rounded-3xl border p-6 ${theme.card}`}>
+                    <p className={theme.muted}>
+                      Não existem horários disponíveis para esta data.
+                    </p>
                   </div>
                 )}
               </div>
@@ -590,6 +584,7 @@ export default async function BookingPage({
                 serviceIds={selectedServiceIds}
                 date={date}
                 time={time}
+                theme={business.theme}
               />
             )}
           </div>

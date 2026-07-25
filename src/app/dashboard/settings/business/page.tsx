@@ -2,6 +2,10 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { getCurrentBusinessSlug } from "@/lib/current-business"
+import {
+  businessThemes,
+  normalizeBusinessTheme,
+} from "@/lib/business-theme"
 import { updateBusinessSettingsAction } from "./actions"
 
 type BusinessSettingsPageProps = {
@@ -18,13 +22,19 @@ export default async function BusinessSettingsPage({
 
   const business = await prisma.business.findUnique({
     where: {
-      slug: (await getCurrentBusinessSlug()),
+      slug: await getCurrentBusinessSlug(),
     },
   })
 
   if (!business) {
     notFound()
   }
+
+  const currentTheme = normalizeBusinessTheme(business.theme)
+
+  const currentThemeLabel =
+    businessThemes.find((theme) => theme.value === currentTheme)?.label ??
+    "Premium"
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
@@ -41,8 +51,8 @@ export default async function BusinessSettingsPage({
               </h1>
 
               <p className="mt-4 max-w-2xl text-zinc-400">
-                Edite as informações públicas e o e-mail interno que recebe
-                avisos de novas marcações.
+                Edite as informações públicas, escolha o tema visual e defina o
+                e-mail interno que recebe avisos de novas marcações.
               </p>
             </div>
 
@@ -63,7 +73,7 @@ export default async function BusinessSettingsPage({
             </div>
           </div>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
+          <div className="mt-8 grid gap-4 md:grid-cols-4">
             <div className="rounded-3xl border border-zinc-800 bg-black/40 p-5">
               <p className="text-sm text-zinc-500">Nome atual</p>
               <p className="mt-2 truncate text-lg font-semibold">
@@ -75,6 +85,13 @@ export default async function BusinessSettingsPage({
               <p className="text-sm text-zinc-500">Link público</p>
               <p className="mt-2 truncate text-lg font-semibold">
                 /book/{business.slug}
+              </p>
+            </div>
+
+            <div className="rounded-3xl border border-zinc-800 bg-black/40 p-5">
+              <p className="text-sm text-zinc-500">Tema atual</p>
+              <p className="mt-2 truncate text-lg font-semibold">
+                {currentThemeLabel}
               </p>
             </div>
 
@@ -226,13 +243,81 @@ export default async function BusinessSettingsPage({
             </div>
 
             <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-5">
+              <div>
+                <p className="text-sm font-semibold text-zinc-200">
+                  Tema da página pública
+                </p>
+
+                <p className="mt-2 text-sm text-zinc-500">
+                  Escolha como a página de agendamento deste negócio será
+                  apresentada ao cliente.
+                </p>
+              </div>
+
+              <div className="mt-5 grid gap-4 md:grid-cols-3">
+                {businessThemes.map((theme) => (
+                  <label
+                    key={theme.value}
+                    className="cursor-pointer rounded-3xl border border-zinc-800 bg-black/40 p-5 transition hover:border-white/50 has-[:checked]:border-white has-[:checked]:bg-white has-[:checked]:text-zinc-950"
+                  >
+                    <input
+                      type="radio"
+                      name="theme"
+                      value={theme.value}
+                      defaultChecked={currentTheme === theme.value}
+                      className="sr-only"
+                    />
+
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-lg font-bold">{theme.label}</span>
+
+                      <span className="rounded-full border border-current px-3 py-1 text-xs font-semibold">
+                        {currentTheme === theme.value ? "Atual" : "Escolher"}
+                      </span>
+                    </div>
+
+                    <p className="mt-3 text-sm opacity-70">
+                      {theme.description}
+                    </p>
+
+                    <div className="mt-5 flex gap-2">
+                      {theme.value === "WHITE" && (
+                        <>
+                          <span className="size-8 rounded-full border border-zinc-300 bg-white" />
+                          <span className="size-8 rounded-full bg-zinc-950" />
+                          <span className="size-8 rounded-full bg-zinc-200" />
+                        </>
+                      )}
+
+                      {theme.value === "NUDE" && (
+                        <>
+                          <span className="size-8 rounded-full bg-[#f6eee7]" />
+                          <span className="size-8 rounded-full bg-[#d8beb0]" />
+                          <span className="size-8 rounded-full bg-[#2b211c]" />
+                        </>
+                      )}
+
+                      {theme.value === "LUXURY" && (
+                        <>
+                          <span className="size-8 rounded-full bg-zinc-950 ring-1 ring-white/20" />
+                          <span className="size-8 rounded-full bg-white" />
+                          <span className="size-8 rounded-full bg-zinc-500" />
+                        </>
+                      )}
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-5">
               <p className="text-sm text-zinc-500">
-                Por enquanto o link público permanece fixo como{" "}
+                O link público deste negócio é{" "}
                 <span className="font-semibold text-white">
                   /book/{business.slug}
                 </span>
-                . Quando adicionarmos multi-negócio, cada clínica terá o seu
-                próprio link.
+                . Compartilhe este link com os clientes para receber marcações
+                online.
               </p>
             </div>
 

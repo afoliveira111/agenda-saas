@@ -1,6 +1,7 @@
 "use client"
 
 import { useActionState } from "react"
+import { getPublicThemeClasses } from "@/lib/business-theme"
 import { createBookingAction } from "./actions"
 
 type BookingCustomerFormProps = {
@@ -8,6 +9,7 @@ type BookingCustomerFormProps = {
   serviceIds: string[]
   date: string
   time: string
+  theme?: string | null
 }
 
 export function BookingCustomerForm({
@@ -15,10 +17,13 @@ export function BookingCustomerForm({
   serviceIds,
   date,
   time,
+  theme: businessTheme,
 }: BookingCustomerFormProps) {
   const [state, formAction, isPending] = useActionState(createBookingAction, {
     error: "",
   })
+
+  const theme = getPublicThemeClasses(businessTheme)
 
   function handleNameInput(event: React.FormEvent<HTMLInputElement>) {
     event.currentTarget.value = event.currentTarget.value.replace(/[0-9]/g, "")
@@ -29,20 +34,20 @@ export function BookingCustomerForm({
       id="confirmacao"
       action={formAction}
       noValidate
-      className="mt-10 scroll-mt-8 rounded-[2rem] border border-white/20 bg-white p-6 text-zinc-950 shadow-2xl shadow-white/10"
+      className={`mt-10 scroll-mt-8 rounded-[2rem] border p-6 shadow-2xl ${theme.cardStrong}`}
     >
       <input type="hidden" name="slug" value={slug} />
       <input type="hidden" name="serviceIds" value={serviceIds.join(",")} />
       <input type="hidden" name="date" value={date} />
       <input type="hidden" name="time" value={time} />
 
-      <p className="text-xs font-semibold uppercase tracking-[0.3em] text-zinc-500">
+      <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.muted}`}>
         Passo 4
       </p>
 
       <h2 className="mt-3 text-2xl font-bold">Confirmar dados do cliente</h2>
 
-      <p className="mt-3 text-zinc-600">
+      <p className={`mt-3 ${theme.muted}`}>
         Serviços selecionados para {date} às {time}.
       </p>
 
@@ -61,7 +66,7 @@ export function BookingCustomerForm({
           maxLength={80}
           autoComplete="name"
           onInput={handleNameInput}
-          className="rounded-2xl border border-zinc-300 bg-white px-4 py-4 text-zinc-950 outline-none transition placeholder:text-zinc-400 focus:border-zinc-950"
+          className={`rounded-2xl border px-4 py-4 outline-none transition ${theme.input}`}
         />
 
         <input
@@ -72,7 +77,7 @@ export function BookingCustomerForm({
           maxLength={20}
           inputMode="tel"
           autoComplete="tel"
-          className="rounded-2xl border border-zinc-300 bg-white px-4 py-4 text-zinc-950 outline-none transition placeholder:text-zinc-400 focus:border-zinc-950"
+          className={`rounded-2xl border px-4 py-4 outline-none transition ${theme.input}`}
         />
 
         <input
@@ -82,13 +87,13 @@ export function BookingCustomerForm({
           maxLength={120}
           inputMode="email"
           autoComplete="email"
-          className="rounded-2xl border border-zinc-300 bg-white px-4 py-4 text-zinc-950 outline-none transition placeholder:text-zinc-400 focus:border-zinc-950"
+          className={`rounded-2xl border px-4 py-4 outline-none transition ${theme.input}`}
         />
 
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-2xl bg-zinc-950 px-4 py-4 font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-400"
+          className={`rounded-2xl px-4 py-4 font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${theme.primaryButton}`}
         >
           {isPending ? "A confirmar..." : "Confirmar marcação"}
         </button>
