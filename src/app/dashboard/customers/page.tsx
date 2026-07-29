@@ -1,6 +1,7 @@
 import Link from "next/link"
-import { prisma } from "@/lib/prisma"
 import { getCurrentBusinessSlug } from "@/lib/current-business"
+import { getDashboardThemeClasses } from "@/lib/dashboard-theme"
+import { prisma } from "@/lib/prisma"
 
 function formatPrice(priceCents: number) {
   return new Intl.NumberFormat("pt-PT", {
@@ -55,6 +56,18 @@ function getStatusLabel(status: string) {
   return statusMap[status] ?? status
 }
 
+function getStatusClasses(status: string) {
+  const statusMap: Record<string, string> = {
+    PENDING: "border-yellow-300 bg-yellow-50 text-yellow-800",
+    CONFIRMED: "border-emerald-300 bg-emerald-50 text-emerald-800",
+    CANCELLED: "border-red-300 bg-red-50 text-red-800",
+    COMPLETED: "border-blue-300 bg-blue-50 text-blue-800",
+    NO_SHOW: "border-orange-300 bg-orange-50 text-orange-800",
+  }
+
+  return statusMap[status] ?? "border-zinc-300 bg-zinc-50 text-zinc-700"
+}
+
 export default async function DashboardCustomersPage() {
   const currentBusinessSlug = await getCurrentBusinessSlug()
   const now = new Date()
@@ -88,28 +101,37 @@ export default async function DashboardCustomersPage() {
 
   if (!business) {
     return (
-      <main className="min-h-screen bg-zinc-950 text-white">
+      <main className="min-h-screen bg-[#111113] text-white">
         <section className="mx-auto max-w-5xl px-6 py-16">
-          <div className="rounded-[2rem] border border-zinc-800 bg-black p-8">
+          <div className="rounded-[2rem] border border-zinc-800 bg-[#18181b] p-8">
             <h1 className="text-3xl font-bold">Negócio não encontrado</h1>
+
             <p className="mt-3 text-zinc-500">
-              Selecione um negócio em /dashboard/businesses.
+              O negócio selecionado não existe.
             </p>
+
+            <Link
+              href="/dashboard"
+              className="mt-6 inline-block rounded-2xl border border-white bg-white px-5 py-3 font-semibold text-zinc-950 transition hover:bg-zinc-200"
+            >
+              Voltar ao painel
+            </Link>
           </div>
         </section>
       </main>
     )
   }
 
+  const theme = getDashboardThemeClasses(business.theme)
   const customers = business.customers
 
   const customersWithBookings = customers.filter(
-    (customer) => customer.bookings.length > 0
+    (customer) => customer.bookings.length > 0,
   )
 
   const totalBookings = customers.reduce(
     (total, customer) => total + customer.bookings.length,
-    0
+    0,
   )
 
   const estimatedRevenue = customers.reduce((total, customer) => {
@@ -121,20 +143,22 @@ export default async function DashboardCustomersPage() {
   }, 0)
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white">
+    <main className={`min-h-screen ${theme.page}`}>
       <section className="mx-auto max-w-7xl px-6 py-10">
-        <div className="rounded-[2rem] border border-zinc-800 bg-gradient-to-br from-zinc-900 via-zinc-950 to-black p-8 shadow-2xl">
+        <div className={`rounded-[2rem] border p-8 shadow-2xl ${theme.hero}`}>
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">
-                Painel profissional
+              <p className={`text-sm uppercase tracking-[0.3em] ${theme.subtle}`}>
+                Área do negócio
               </p>
 
-              <h1 className="mt-3 text-4xl font-bold tracking-tight text-white md:text-5xl">
+              <h1
+                className={`mt-3 text-4xl font-bold tracking-tight md:text-5xl ${theme.title}`}
+              >
                 Clientes
               </h1>
 
-              <p className="mt-4 max-w-2xl text-zinc-400">
+              <p className={`mt-4 max-w-2xl ${theme.muted}`}>
                 Veja os clientes do negócio selecionado, histórico de marcações
                 e contacto rápido por WhatsApp.
               </p>
@@ -143,14 +167,14 @@ export default async function DashboardCustomersPage() {
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/dashboard"
-                className="rounded-2xl border border-zinc-700 px-5 py-3 text-center font-semibold text-zinc-300 transition hover:border-white hover:text-white"
+                className={`rounded-2xl border px-5 py-3 text-center font-semibold transition ${theme.secondaryButton}`}
               >
                 Voltar ao painel
               </Link>
 
               <Link
                 href={`/book/${business.slug}`}
-                className="rounded-2xl border border-white bg-white px-5 py-3 text-center font-semibold text-zinc-950 transition hover:bg-zinc-200"
+                className={`rounded-2xl border px-5 py-3 text-center font-semibold transition ${theme.primaryButton}`}
               >
                 Abrir página pública
               </Link>
@@ -158,143 +182,161 @@ export default async function DashboardCustomersPage() {
           </div>
 
           <div className="mt-8 grid gap-4 md:grid-cols-4">
-            <div className="rounded-3xl border border-zinc-800 bg-black/40 p-5">
-              <p className="text-sm text-zinc-500">Clientes</p>
-              <p className="mt-2 text-3xl font-bold">{customers.length}</p>
+            <div className={`rounded-3xl border p-5 ${theme.card}`}>
+              <p className={`text-sm ${theme.muted}`}>Clientes</p>
+
+              <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
+                {customers.length}
+              </p>
             </div>
 
-            <div className="rounded-3xl border border-zinc-800 bg-black/40 p-5">
-              <p className="text-sm text-zinc-500">Com marcações</p>
-              <p className="mt-2 text-3xl font-bold">
+            <div className={`rounded-3xl border p-5 ${theme.card}`}>
+              <p className={`text-sm ${theme.muted}`}>Com marcações</p>
+
+              <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
                 {customersWithBookings.length}
               </p>
             </div>
 
-            <div className="rounded-3xl border border-zinc-800 bg-black/40 p-5">
-              <p className="text-sm text-zinc-500">Total de marcações</p>
-              <p className="mt-2 text-3xl font-bold">{totalBookings}</p>
+            <div className={`rounded-3xl border p-5 ${theme.card}`}>
+              <p className={`text-sm ${theme.muted}`}>Total de marcações</p>
+
+              <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
+                {totalBookings}
+              </p>
             </div>
 
-            <div className="rounded-3xl border border-zinc-800 bg-black/40 p-5">
-              <p className="text-sm text-zinc-500">Valor estimado</p>
-              <p className="mt-2 text-3xl font-bold">
+            <div className={`rounded-3xl border p-5 ${theme.card}`}>
+              <p className={`text-sm ${theme.muted}`}>Valor estimado</p>
+
+              <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
                 {formatPrice(estimatedRevenue)}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="mt-8 rounded-[2rem] border border-zinc-800 bg-black p-4 shadow-2xl">
-          <div className="border-b border-zinc-800 px-2 pb-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-zinc-600">
+        <div className={`mt-8 rounded-[2rem] border p-4 shadow-2xl ${theme.panel}`}>
+          <div className={`border-b px-2 pb-5 ${theme.line}`}>
+            <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
               Base de clientes
             </p>
 
-            <h2 className="mt-3 text-2xl font-bold">
+            <h2 className={`mt-3 text-2xl font-bold ${theme.title}`}>
               Clientes de {business.name}
             </h2>
 
-            <p className="mt-2 text-sm text-zinc-500">
-              A partir de agora, novas marcações com o mesmo e-mail ficam
-              associadas ao mesmo cliente.
+            <p className={`mt-2 text-sm ${theme.muted}`}>
+              As novas marcações com o mesmo e-mail ficam associadas ao mesmo
+              cliente.
             </p>
           </div>
 
           {customers.length === 0 ? (
-            <div className="mt-4 rounded-3xl border border-zinc-800 bg-zinc-950 p-10 text-center text-zinc-500">
-              Ainda não existem clientes neste negócio.
+            <div
+              className={`mt-4 rounded-3xl border p-10 text-center ${theme.card}`}
+            >
+              <p className={theme.muted}>
+                Ainda não existem clientes neste negócio.
+              </p>
             </div>
           ) : (
             <div className="mt-4 grid gap-4">
               {customers.map((customer) => {
                 const validBookings = customer.bookings.filter(
-                  (booking) => booking.status !== "CANCELLED"
+                  (booking) => booking.status !== "CANCELLED",
                 )
 
                 const totalSpent = validBookings.reduce(
                   (sum, booking) => sum + booking.totalPriceCents,
-                  0
+                  0,
                 )
 
                 const nextBooking = customer.bookings
                   .filter(
                     (booking) =>
-                      booking.startAt >= now && booking.status === "CONFIRMED"
+                      booking.startAt >= now && booking.status === "CONFIRMED",
                   )
                   .sort((a, b) => a.startAt.getTime() - b.startAt.getTime())[0]
 
                 const lastBooking = customer.bookings[0]
-
                 const whatsappPhone = getWhatsAppPhone(customer.phone)
 
                 const whatsappUrl = whatsappPhone
                   ? `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
-                      createWhatsAppMessage(customer.name, business.name)
+                      createWhatsAppMessage(customer.name, business.name),
                     )}`
                   : ""
 
                 return (
                   <div
                     key={customer.id}
-                    className="rounded-3xl border border-zinc-800 bg-zinc-950 p-5"
+                    className={`rounded-3xl border p-5 ${theme.card}`}
                   >
                     <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
                       <div>
                         <div className="flex flex-wrap items-center gap-3">
-                          <span className="rounded-full border border-white bg-white px-3 py-1 text-xs font-semibold text-zinc-950">
+                          <span
+                            className={`rounded-full border px-3 py-1 text-xs font-semibold ${theme.badge}`}
+                          >
                             Cliente
                           </span>
 
-                          <span className="text-sm text-zinc-500">
+                          <span className={`text-sm ${theme.muted}`}>
                             {customer.bookings.length} marcação/marcações
                           </span>
                         </div>
 
-                        <h3 className="mt-4 text-2xl font-bold text-white">
+                        <h3 className={`mt-4 text-2xl font-bold ${theme.title}`}>
                           {customer.name}
                         </h3>
 
-                        <div className="mt-3 grid gap-2 text-sm text-zinc-500">
+                        <div className={`mt-3 grid gap-2 text-sm ${theme.muted}`}>
                           <p>
                             Telefone:{" "}
-                            <span className="text-zinc-300">
+                            <span className={`font-medium ${theme.title}`}>
                               {customer.phone || "Não informado"}
                             </span>
                           </p>
 
                           <p>
                             E-mail:{" "}
-                            <span className="text-zinc-300">
+                            <span className={`font-medium ${theme.title}`}>
                               {customer.email || "Não informado"}
                             </span>
                           </p>
                         </div>
 
                         <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                          <div className="rounded-2xl border border-zinc-800 bg-black p-4">
-                            <p className="text-xs text-zinc-600">Marcações</p>
-                            <p className="mt-1 text-xl font-bold">
+                          <div className={`rounded-2xl border p-4 ${theme.panelSoft}`}>
+                            <p className={`text-xs ${theme.subtle}`}>
+                              Marcações
+                            </p>
+
+                            <p className={`mt-1 text-xl font-bold ${theme.title}`}>
                               {customer.bookings.length}
                             </p>
                           </div>
 
-                          <div className="rounded-2xl border border-zinc-800 bg-black p-4">
-                            <p className="text-xs text-zinc-600">
+                          <div className={`rounded-2xl border p-4 ${theme.panelSoft}`}>
+                            <p className={`text-xs ${theme.subtle}`}>
                               Valor estimado
                             </p>
-                            <p className="mt-1 text-xl font-bold">
+
+                            <p className={`mt-1 text-xl font-bold ${theme.title}`}>
                               {formatPrice(totalSpent)}
                             </p>
                           </div>
 
-                          <div className="rounded-2xl border border-zinc-800 bg-black p-4">
-                            <p className="text-xs text-zinc-600">
+                          <div className={`rounded-2xl border p-4 ${theme.panelSoft}`}>
+                            <p className={`text-xs ${theme.subtle}`}>
                               Próxima marcação
                             </p>
-                            <p className="mt-1 text-sm font-semibold">
+
+                            <p className={`mt-1 text-sm font-semibold ${theme.title}`}>
                               {nextBooking
                                 ? `${formatDate(nextBooking.startAt)} · ${formatTime(
-                                    nextBooking.startAt
+                                    nextBooking.startAt,
                                   )}`
                                 : "Nenhuma"}
                             </p>
@@ -302,19 +344,28 @@ export default async function DashboardCustomersPage() {
                         </div>
 
                         {lastBooking && (
-                          <div className="mt-5 rounded-2xl border border-zinc-800 bg-black p-4">
-                            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-zinc-600">
-                              Última marcação
-                            </p>
+                          <div className={`mt-5 rounded-2xl border p-4 ${theme.panelSoft}`}>
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                              <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
+                                Última marcação
+                              </p>
 
-                            <p className="mt-3 text-sm text-zinc-400">
+                              <span
+                                className={`rounded-full border px-3 py-1 text-xs font-semibold ${getStatusClasses(
+                                  lastBooking.status,
+                                )}`}
+                              >
+                                {getStatusLabel(lastBooking.status)}
+                              </span>
+                            </div>
+
+                            <p className={`mt-3 text-sm ${theme.muted}`}>
                               {formatDate(lastBooking.startAt)} ·{" "}
                               {formatTime(lastBooking.startAt)} -{" "}
-                              {formatTime(lastBooking.endAt)} ·{" "}
-                              {getStatusLabel(lastBooking.status)}
+                              {formatTime(lastBooking.endAt)}
                             </p>
 
-                            <div className="mt-3 grid gap-1 text-sm text-zinc-500">
+                            <div className={`mt-3 grid gap-1 text-sm ${theme.muted}`}>
                               {lastBooking.services.map((item) => (
                                 <p key={item.id}>{item.service.name}</p>
                               ))}
@@ -324,12 +375,12 @@ export default async function DashboardCustomersPage() {
                       </div>
 
                       <div className="flex flex-col gap-4">
-                        <div className="rounded-2xl border border-zinc-800 bg-black p-4">
-                          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-zinc-600">
+                        <div className={`rounded-2xl border p-4 ${theme.panelSoft}`}>
+                          <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
                             Contacto rápido
                           </p>
 
-                          <p className="mt-3 text-sm text-zinc-500">
+                          <p className={`mt-3 text-sm ${theme.muted}`}>
                             Abre o WhatsApp com uma mensagem pronta para este
                             cliente.
                           </p>
@@ -339,24 +390,26 @@ export default async function DashboardCustomersPage() {
                               href={whatsappUrl}
                               target="_blank"
                               rel="noreferrer"
-                              className="mt-4 block rounded-2xl border border-white bg-white px-4 py-3 text-center text-sm font-semibold text-zinc-950 transition hover:bg-zinc-200"
+                              className={`mt-4 block rounded-2xl border px-4 py-3 text-center text-sm font-semibold transition ${theme.primaryButton}`}
                             >
                               Enviar WhatsApp
                             </a>
                           ) : (
-                            <div className="mt-4 rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-center text-sm font-semibold text-zinc-600">
+                            <div
+                              className={`mt-4 rounded-2xl border px-4 py-3 text-center text-sm font-semibold ${theme.badge}`}
+                            >
                               Cliente sem telefone
                             </div>
                           )}
                         </div>
 
-                        <div className="rounded-2xl border border-zinc-800 bg-black p-4">
-                          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-zinc-600">
+                        <div className={`rounded-2xl border p-4 ${theme.panelSoft}`}>
+                          <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
                             Histórico recente
                           </p>
 
                           {customer.bookings.length === 0 ? (
-                            <p className="mt-3 text-sm text-zinc-500">
+                            <p className={`mt-3 text-sm ${theme.muted}`}>
                               Sem marcações.
                             </p>
                           ) : (
@@ -364,15 +417,26 @@ export default async function DashboardCustomersPage() {
                               {customer.bookings.slice(0, 3).map((booking) => (
                                 <div
                                   key={booking.id}
-                                  className="rounded-2xl border border-zinc-800 bg-zinc-950 p-3"
+                                  className={`rounded-2xl border p-3 ${theme.cardStrong}`}
                                 >
-                                  <p className="text-sm font-semibold text-white">
-                                    {formatDate(booking.startAt)} ·{" "}
-                                    {formatTime(booking.startAt)}
-                                  </p>
+                                  <div className="flex flex-wrap items-center justify-between gap-2">
+                                    <p
+                                      className={`text-sm font-semibold ${theme.title}`}
+                                    >
+                                      {formatDate(booking.startAt)} ·{" "}
+                                      {formatTime(booking.startAt)}
+                                    </p>
 
-                                  <p className="mt-1 text-xs text-zinc-600">
-                                    {getStatusLabel(booking.status)} ·{" "}
+                                    <span
+                                      className={`rounded-full border px-2 py-1 text-[11px] font-semibold ${getStatusClasses(
+                                        booking.status,
+                                      )}`}
+                                    >
+                                      {getStatusLabel(booking.status)}
+                                    </span>
+                                  </div>
+
+                                  <p className={`mt-2 text-xs ${theme.muted}`}>
                                     {formatPrice(booking.totalPriceCents)}
                                   </p>
                                 </div>

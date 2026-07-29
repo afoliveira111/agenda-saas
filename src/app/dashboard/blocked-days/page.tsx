@@ -1,7 +1,9 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { prisma } from "@/lib/prisma"
+import { normalizeBusinessTheme } from "@/lib/business-theme"
 import { getCurrentBusinessSlug } from "@/lib/current-business"
+import { getDashboardThemeClasses } from "@/lib/dashboard-theme"
+import { prisma } from "@/lib/prisma"
 import {
   createBlockedDaysAction,
   deleteBlockedDayAction,
@@ -37,6 +39,26 @@ function formatDateInput(date: Date) {
   return `${year}-${month}-${day}`
 }
 
+function getFeedbackClasses(type: "error" | "success") {
+  if (type === "error") {
+    return "border-red-300 bg-red-50 text-red-800"
+  }
+
+  return "border-emerald-300 bg-emerald-50 text-emerald-800"
+}
+
+function getInputClasses(theme: string) {
+  if (theme === "WHITE") {
+    return "mt-2 w-full rounded-2xl border border-zinc-300 bg-white px-4 py-4 text-zinc-950 outline-none transition placeholder:text-zinc-400 focus:border-zinc-950"
+  }
+
+  if (theme === "NUDE") {
+    return "mt-2 w-full rounded-2xl border border-[#d8beb0] bg-white px-4 py-4 text-[#2b211c] outline-none transition placeholder:text-[#9d8576] focus:border-[#2b211c]"
+  }
+
+  return "mt-2 w-full rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-4 text-white outline-none transition placeholder:text-zinc-700 focus:border-white"
+}
+
 export default async function DashboardBlockedDaysPage({
   searchParams,
 }: BlockedDaysPageProps) {
@@ -46,7 +68,7 @@ export default async function DashboardBlockedDaysPage({
 
   const business = await prisma.business.findUnique({
     where: {
-      slug: (await getCurrentBusinessSlug()),
+      slug: await getCurrentBusinessSlug(),
     },
     include: {
       blockedDays: {
@@ -66,23 +88,28 @@ export default async function DashboardBlockedDaysPage({
     notFound()
   }
 
+  const currentTheme = normalizeBusinessTheme(business.theme)
+  const theme = getDashboardThemeClasses(business.theme)
+  const inputClasses = getInputClasses(currentTheme)
   const todayInput = formatDateInput(today)
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white">
+    <main className={`min-h-screen ${theme.page}`}>
       <section className="mx-auto max-w-7xl px-6 py-10">
-        <div className="rounded-[2rem] border border-zinc-800 bg-gradient-to-br from-zinc-900 via-zinc-950 to-black p-8 shadow-2xl">
+        <div className={`rounded-[2rem] border p-8 shadow-2xl ${theme.hero}`}>
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">
+              <p className={`text-sm uppercase tracking-[0.3em] ${theme.subtle}`}>
                 Configurações
               </p>
 
-              <h1 className="mt-3 text-4xl font-bold tracking-tight text-white md:text-5xl">
+              <h1
+                className={`mt-3 text-4xl font-bold tracking-tight md:text-5xl ${theme.title}`}
+              >
                 Bloqueios de agenda
               </h1>
 
-              <p className="mt-4 max-w-2xl text-zinc-400">
+              <p className={`mt-4 max-w-2xl ${theme.muted}`}>
                 Bloqueie dias específicos para férias, feriados, ausências ou
                 qualquer situação em que não deseja receber novas marcações.
               </p>
@@ -91,14 +118,14 @@ export default async function DashboardBlockedDaysPage({
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/dashboard/settings/hours"
-                className="rounded-2xl border border-zinc-700 px-5 py-3 text-center font-semibold text-zinc-300 transition hover:border-white hover:text-white"
+                className={`rounded-2xl border px-5 py-3 text-center font-semibold transition ${theme.secondaryButton}`}
               >
                 Ver horários
               </Link>
 
               <Link
                 href={`/book/${business.slug}`}
-                className="rounded-2xl border border-white bg-white px-5 py-3 text-center font-semibold text-zinc-950 transition hover:bg-zinc-200"
+                className={`rounded-2xl border px-5 py-3 text-center font-semibold transition ${theme.primaryButton}`}
               >
                 Abrir página pública
               </Link>
@@ -106,23 +133,26 @@ export default async function DashboardBlockedDaysPage({
           </div>
 
           <div className="mt-8 grid gap-4 md:grid-cols-3">
-            <div className="rounded-3xl border border-zinc-800 bg-black/40 p-5">
-              <p className="text-sm text-zinc-500">Bloqueios futuros</p>
-              <p className="mt-2 text-3xl font-bold">
+            <div className={`rounded-3xl border p-5 ${theme.card}`}>
+              <p className={`text-sm ${theme.muted}`}>Bloqueios futuros</p>
+
+              <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
                 {business.blockedDays.length}
               </p>
             </div>
 
-            <div className="rounded-3xl border border-zinc-800 bg-black/40 p-5">
-              <p className="text-sm text-zinc-500">Link público</p>
-              <p className="mt-2 truncate text-lg font-semibold">
+            <div className={`rounded-3xl border p-5 ${theme.card}`}>
+              <p className={`text-sm ${theme.muted}`}>Link público</p>
+
+              <p className={`mt-2 truncate text-lg font-semibold ${theme.title}`}>
                 /book/{business.slug}
               </p>
             </div>
 
-            <div className="rounded-3xl border border-zinc-800 bg-black/40 p-5">
-              <p className="text-sm text-zinc-500">Negócio</p>
-              <p className="mt-2 truncate text-lg font-semibold">
+            <div className={`rounded-3xl border p-5 ${theme.card}`}>
+              <p className={`text-sm ${theme.muted}`}>Negócio</p>
+
+              <p className={`mt-2 truncate text-lg font-semibold ${theme.title}`}>
                 {business.name}
               </p>
             </div>
@@ -131,10 +161,10 @@ export default async function DashboardBlockedDaysPage({
 
         {(error || success) && (
           <div
-            className={`mt-6 rounded-3xl border px-5 py-4 text-sm font-medium ${
+            className={`mt-6 rounded-3xl border px-5 py-4 text-sm font-semibold ${
               error
-                ? "border-red-900/70 bg-red-950/30 text-red-300"
-                : "border-zinc-700 bg-zinc-900 text-zinc-200"
+                ? getFeedbackClasses("error")
+                : getFeedbackClasses("success")
             }`}
           >
             {error || success}
@@ -142,21 +172,23 @@ export default async function DashboardBlockedDaysPage({
         )}
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[420px_1fr]">
-          <div className="rounded-[2rem] border border-zinc-800 bg-black p-6 shadow-2xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-zinc-600">
+          <div className={`rounded-[2rem] border p-6 shadow-2xl ${theme.panel}`}>
+            <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
               Novo bloqueio
             </p>
 
-            <h2 className="mt-3 text-2xl font-bold">Bloquear data</h2>
+            <h2 className={`mt-3 text-2xl font-bold ${theme.title}`}>
+              Bloquear data
+            </h2>
 
-            <p className="mt-3 text-sm text-zinc-500">
+            <p className={`mt-3 text-sm ${theme.muted}`}>
               Pode bloquear apenas um dia ou um período inteiro. Esses dias não
               aparecerão como disponíveis para o cliente.
             </p>
 
             <form action={createBlockedDaysAction} className="mt-6 grid gap-4">
               <div>
-                <label className="text-sm font-medium text-zinc-300">
+                <label className={`text-sm font-medium ${theme.title}`}>
                   Data inicial
                 </label>
 
@@ -166,12 +198,12 @@ export default async function DashboardBlockedDaysPage({
                   required
                   min={todayInput}
                   defaultValue={todayInput}
-                  className="mt-2 w-full rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-4 text-white outline-none transition focus:border-white"
+                  className={inputClasses}
                 />
               </div>
 
               <div>
-                <label className="text-sm font-medium text-zinc-300">
+                <label className={`text-sm font-medium ${theme.title}`}>
                   Data final
                 </label>
 
@@ -179,16 +211,16 @@ export default async function DashboardBlockedDaysPage({
                   type="date"
                   name="dateTo"
                   min={todayInput}
-                  className="mt-2 w-full rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-4 text-white outline-none transition focus:border-white"
+                  className={inputClasses}
                 />
 
-                <p className="mt-2 text-xs text-zinc-600">
+                <p className={`mt-2 text-xs ${theme.subtle}`}>
                   Deixe vazio para bloquear apenas a data inicial.
                 </p>
               </div>
 
               <div>
-                <label className="text-sm font-medium text-zinc-300">
+                <label className={`text-sm font-medium ${theme.title}`}>
                   Motivo
                 </label>
 
@@ -197,42 +229,61 @@ export default async function DashboardBlockedDaysPage({
                   rows={4}
                   maxLength={180}
                   placeholder="Ex: Férias, feriado, formação, ausência pessoal..."
-                  className="mt-2 w-full resize-none rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-4 text-white outline-none transition placeholder:text-zinc-700 focus:border-white"
+                  className={`${inputClasses} resize-none`}
                 />
               </div>
 
               <button
                 type="submit"
-                className="mt-2 rounded-2xl border border-white bg-white px-5 py-4 font-semibold text-zinc-950 transition hover:bg-zinc-200"
+                className={`mt-2 rounded-2xl border px-5 py-4 font-semibold transition ${theme.primaryButton}`}
               >
                 Criar bloqueio
               </button>
             </form>
           </div>
 
-          <div className="rounded-[2rem] border border-zinc-800 bg-zinc-950 p-4 shadow-2xl">
+          <div className={`rounded-[2rem] border p-4 shadow-2xl ${theme.panel}`}>
+            <div className={`border-b px-2 pb-4 ${theme.line}`}>
+              <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
+                Datas indisponíveis
+              </p>
+
+              <h2 className={`mt-3 text-2xl font-bold ${theme.title}`}>
+                Bloqueios futuros
+              </h2>
+
+              <p className={`mt-2 text-sm ${theme.muted}`}>
+                As datas abaixo ficam escondidas da página pública para novas
+                marcações.
+              </p>
+            </div>
+
             {business.blockedDays.length === 0 ? (
-              <div className="rounded-3xl border border-zinc-800 bg-black p-10 text-center text-zinc-500">
-                Ainda não existem bloqueios futuros.
+              <div
+                className={`mt-4 rounded-3xl border p-10 text-center ${theme.card}`}
+              >
+                <p className={theme.muted}>
+                  Ainda não existem bloqueios futuros.
+                </p>
               </div>
             ) : (
-              <div className="grid gap-4">
+              <div className="mt-4 grid gap-4">
                 {business.blockedDays.map((blockedDay) => (
                   <div
                     key={blockedDay.id}
-                    className="rounded-3xl border border-zinc-800 bg-black p-5"
+                    className={`rounded-3xl border p-5 ${theme.card}`}
                   >
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-zinc-600">
+                        <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
                           Dia bloqueado
                         </p>
 
-                        <h3 className="mt-3 text-xl font-bold text-white">
+                        <h3 className={`mt-3 text-xl font-bold ${theme.title}`}>
                           {formatDate(blockedDay.date)}
                         </h3>
 
-                        <p className="mt-2 text-sm text-zinc-500">
+                        <p className={`mt-2 text-sm ${theme.muted}`}>
                           {blockedDay.reason || "Sem motivo informado."}
                         </p>
                       </div>
@@ -246,7 +297,7 @@ export default async function DashboardBlockedDaysPage({
 
                         <button
                           type="submit"
-                          className="rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm font-semibold text-zinc-500 transition hover:border-zinc-600 hover:text-zinc-300"
+                          className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${theme.secondaryButton}`}
                         >
                           Remover bloqueio
                         </button>

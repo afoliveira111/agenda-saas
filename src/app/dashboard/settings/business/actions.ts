@@ -2,9 +2,9 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
-import { prisma } from "@/lib/prisma"
-import { getCurrentBusinessSlug } from "@/lib/current-business"
 import { normalizeBusinessTheme } from "@/lib/business-theme"
+import { getCurrentBusinessSlug } from "@/lib/current-business"
+import { prisma } from "@/lib/prisma"
 
 function redirectWithError(message: string): never {
   redirect(`/dashboard/settings/business?error=${encodeURIComponent(message)}`)
@@ -19,15 +19,15 @@ function normalizeText(value: FormDataEntryValue | null) {
 }
 
 function normalizePhone(phone: string) {
-  return phone.trim().replace(/[\s().-]/g, "")
+  return phone.replace(/\D/g, "")
 }
 
 function isValidPhone(phone: string) {
-  if (!phone) return true
+  if (!phone.trim()) return true
 
   const normalizedPhone = normalizePhone(phone)
 
-  return /^\+?\d{7,15}$/.test(normalizedPhone)
+  return /^\d{7,15}$/.test(normalizedPhone)
 }
 
 function isValidEmail(email: string) {
@@ -91,7 +91,13 @@ export async function updateBusinessSettingsAction(formData: FormData) {
   })
 
   revalidatePath("/dashboard")
+  revalidatePath("/dashboard/bookings")
+  revalidatePath("/dashboard/customers")
+  revalidatePath("/dashboard/services")
+  revalidatePath("/dashboard/settings/hours")
+  revalidatePath("/dashboard/blocked-days")
   revalidatePath("/dashboard/settings/business")
+  revalidatePath("/admin")
   revalidatePath(`/book/${business.slug}`)
 
   redirectWithSuccess("Configurações do negócio atualizadas com sucesso.")
