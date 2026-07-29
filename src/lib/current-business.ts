@@ -1,4 +1,5 @@
 import { cookies } from "next/headers"
+import { getCurrentSession } from "@/lib/auth"
 
 const DASHBOARD_BUSINESS_COOKIE = "agenda_saas_dashboard_business_slug"
 
@@ -7,7 +8,14 @@ function getDefaultBusinessSlug() {
 }
 
 export async function getCurrentBusinessSlug() {
+  const session = await getCurrentSession()
+
+  if (session?.user.role === "OWNER" && session.user.business?.slug) {
+    return session.user.business.slug
+  }
+
   const cookieStore = await cookies()
+
   const slugFromCookie = cookieStore
     .get(DASHBOARD_BUSINESS_COOKIE)
     ?.value?.trim()

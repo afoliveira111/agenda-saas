@@ -1,3 +1,6 @@
+import Link from "next/link"
+import { redirect } from "next/navigation"
+import { getSessionRedirectPath } from "@/lib/auth"
 import { loginAction } from "./actions"
 
 type LoginPageProps = {
@@ -8,75 +11,110 @@ type LoginPageProps = {
 }
 
 function getErrorMessage(error?: string) {
-  if (error === "invalid") {
-    return "Senha inválida. Tente novamente."
+  if (error === "email") {
+    return "Informe um e-mail válido."
   }
 
   if (error === "config") {
-    return "Configuração de login em falta no .env."
+    return "Configuração inicial em falta. Verifique a senha admin no ambiente."
+  }
+
+  if (error === "invalid") {
+    return "E-mail ou senha incorretos."
   }
 
   return ""
 }
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
-  const search = await searchParams
+  const sessionRedirectPath = await getSessionRedirectPath()
 
-  const errorMessage = getErrorMessage(search.error)
-  const nextUrl = search.next || "/dashboard"
+  if (sessionRedirectPath) {
+    redirect(sessionRedirectPath)
+  }
+
+  const { error, next } = await searchParams
+  const errorMessage = getErrorMessage(error)
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white">
-      <section className="mx-auto flex min-h-screen max-w-md items-center px-6 py-10">
-        <div className="w-full rounded-[2rem] border border-zinc-800 bg-gradient-to-br from-zinc-900 via-zinc-950 to-black p-8 shadow-2xl">
-          <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">
-            Acesso restrito
-          </p>
+    <main className="min-h-screen bg-[#111113] text-white">
+      <section className="mx-auto flex min-h-screen max-w-6xl items-center px-6 py-10">
+        <div className="grid w-full gap-8 lg:grid-cols-[1fr_430px] lg:items-center">
+          <div>
+            <Link href="/" className="text-xl font-black tracking-tight">
+              MarcaFlow
+            </Link>
 
-          <h1 className="mt-4 text-4xl font-bold tracking-tight">
-            Entrar no painel
-          </h1>
+            <p className="mt-10 text-sm uppercase tracking-[0.35em] text-zinc-500">
+              Acesso privado
+            </p>
 
-          <p className="mt-4 text-sm text-zinc-400">
-            Informe a senha administrativa para aceder ao painel profissional.
-          </p>
+            <h1 className="mt-4 max-w-3xl text-4xl font-black tracking-tight md:text-6xl">
+              Entrar no painel de gestão.
+            </h1>
 
-          {errorMessage && (
-            <div className="mt-6 rounded-2xl border border-red-900/70 bg-red-950/30 px-4 py-3 text-sm font-medium text-red-300">
-              {errorMessage}
-            </div>
-          )}
+            <p className="mt-5 max-w-2xl text-lg leading-8 text-zinc-400">
+              Administradores entram no painel da plataforma. Donas de negócio
+              entram apenas no painel do próprio negócio.
+            </p>
+          </div>
 
-          <form action={loginAction} className="mt-8 grid gap-4">
-            <input type="hidden" name="next" value={nextUrl} />
+          <div className="rounded-[2rem] border border-zinc-800 bg-[#18181b] p-6 shadow-2xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-zinc-600">
+              Login
+            </p>
 
-            <div>
-              <label className="text-sm font-medium text-zinc-300">
-                Senha do painel
-              </label>
+            <h2 className="mt-3 text-2xl font-bold">Acessar conta</h2>
 
-              <input
-                type="password"
-                name="password"
-                required
-                autoFocus
-                placeholder="Digite a senha"
-                className="mt-2 w-full rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-4 text-white outline-none transition placeholder:text-zinc-700 focus:border-white"
-              />
-            </div>
+            {errorMessage && (
+              <div className="mt-5 rounded-2xl border border-red-300 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800">
+                {errorMessage}
+              </div>
+            )}
 
-            <button
-              type="submit"
-              className="rounded-2xl border border-white bg-white px-5 py-4 font-semibold text-zinc-950 transition hover:bg-zinc-200"
-            >
-              Entrar
-            </button>
-          </form>
+            <form action={loginAction} className="mt-6 grid gap-4">
+              <input type="hidden" name="next" value={next || ""} />
+              <div>
+                <label className="text-sm font-medium text-zinc-300">
+                  E-mail
+                </label>
 
-          <div className="mt-6 rounded-3xl border border-zinc-800 bg-black p-5">
-            <p className="text-xs text-zinc-600">
-              Este login é temporário para proteger o painel enquanto ainda não
-              existe sistema completo de utilizadores.
+                <input
+                  type="email"
+                  name="email"
+                  required
+                  autoComplete="email"
+                  placeholder="teu@email.com"
+                  className="mt-2 w-full rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-4 text-white outline-none transition placeholder:text-zinc-700 focus:border-white"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-zinc-300">
+                  Senha
+                </label>
+
+                <input
+                  type="password"
+                  name="password"
+                  required
+                  autoComplete="current-password"
+                  placeholder="Digite a senha"
+                  className="mt-2 w-full rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-4 text-white outline-none transition placeholder:text-zinc-700 focus:border-white"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="rounded-2xl border border-white bg-white px-5 py-4 font-bold text-zinc-950 transition hover:bg-zinc-200"
+              >
+                Entrar
+              </button>
+            </form>
+
+            <p className="mt-5 text-sm leading-6 text-zinc-500">
+              No primeiro acesso, usa o teu e-mail e a senha admin atual. O
+              sistema cria automaticamente o primeiro utilizador ADMIN.
             </p>
           </div>
         </div>

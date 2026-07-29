@@ -1,8 +1,9 @@
+import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { prisma } from "@/lib/prisma"
 import { getPublicThemeClasses } from "@/lib/business-theme"
 import { formatDuration } from "@/lib/format-duration"
+import { prisma } from "@/lib/prisma"
 import { BookingCustomerForm } from "./BookingCustomerForm"
 
 type BookingPageProps = {
@@ -127,6 +128,59 @@ function toggleServiceId(currentIds: string[], serviceId: string) {
   return [...currentIds, serviceId]
 }
 
+function formatPhoneDisplay(phone: string | null) {
+  if (!phone) {
+    return ""
+  }
+
+  const digitsOnly = phone.replace(/\D/g, "")
+
+  if (!digitsOnly) {
+    return ""
+  }
+
+  return `+${digitsOnly}`
+}
+
+function getWhatsAppPhone(phone: string | null) {
+  if (!phone) {
+    return ""
+  }
+
+  return phone.replace(/\D/g, "")
+}
+
+function createBusinessWhatsAppMessage(businessName: string) {
+  return [
+    "Olá, tudo bem?",
+    "",
+    `Vi a página de marcação do ${businessName} e gostaria de tirar uma dúvida.`,
+  ].join("\n")
+}
+
+function getBusinessLogo({
+  slug,
+  name,
+}: {
+  slug: string
+  name: string
+}) {
+  const normalizedText = `${slug} ${name}`
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+
+  if (
+    normalizedText.includes("essencia") ||
+    normalizedText.includes("beauty lounge") ||
+    slug === "demo"
+  ) {
+    return "/logos/essencia-beauty-lounge.png"
+  }
+
+  return null
+}
+
 export default async function BookingPage({
   params,
   searchParams,
@@ -214,7 +268,6 @@ export default async function BookingPage({
   if (selectedDate && totalDurationMin > 0) {
     const selectedDateParam = formatDateParam(selectedDate)
     const selectedDayOfWeek = selectedDate.getDay()
-
     const isBlocked = blockedDateParams.includes(selectedDateParam)
 
     const workHour = business.workHours.find(
@@ -249,7 +302,6 @@ export default async function BookingPage({
 
       const startMinutes = timeToMinutes(workHour.startTime)
       const endMinutes = timeToMinutes(workHour.endTime)
-
       const slots: string[] = []
 
       for (
@@ -277,67 +329,191 @@ export default async function BookingPage({
     }
   }
 
+  const phoneDisplay = formatPhoneDisplay(business.phone)
+  const whatsappPhone = getWhatsAppPhone(business.phone)
+  const businessLogo = getBusinessLogo({
+    slug: business.slug,
+    name: business.name,
+  })
+
+  const whatsappUrl = whatsappPhone
+    ? `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
+        createBusinessWhatsAppMessage(business.name),
+      )}`
+    : ""
+
   return (
     <main className={`min-h-screen ${theme.page}`}>
-      <section className="mx-auto max-w-4xl px-5 py-8 sm:px-6 sm:py-12">
+      <section className="mx-auto max-w-6xl px-5 py-8 sm:px-6 sm:py-12">
         <div className={`overflow-hidden rounded-[2rem] border shadow-2xl ${theme.cardStrong}`}>
-          <div className="border-b border-current/10 px-6 py-8 sm:px-8">
-            <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+          <div className="grid gap-8 border-b border-current/10 px-6 py-8 sm:px-8 lg:grid-cols-[1.1fr_0.9fr] lg:px-10 lg:py-10">
+            <div className="flex flex-col justify-between gap-8">
               <div>
                 <p className={`text-xs font-semibold uppercase tracking-[0.35em] ${theme.muted}`}>
                   Marcação online
                 </p>
 
-                <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl">
+                <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-6xl">
                   {business.name}
                 </h1>
 
-                {business.description && (
-                  <p className={`mt-4 max-w-2xl ${theme.muted}`}>
+                {business.description ? (
+                  <p className={`mt-5 max-w-2xl text-lg leading-8 ${theme.muted}`}>
                     {business.description}
+                  </p>
+                ) : (
+                  <p className={`mt-5 max-w-2xl text-lg leading-8 ${theme.muted}`}>
+                    Escolha o serviço, selecione uma data disponível e confirme a
+                    sua marcação online em poucos passos.
                   </p>
                 )}
               </div>
 
-              <div className={`rounded-2xl border px-4 py-3 text-sm ${theme.card}`}>
-                <p className="font-semibold">Reserva simples</p>
-                <p className={`mt-1 ${theme.muted}`}>
-                  Escolha serviços, data e horário.
-                </p>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Link
+                  href="#servicos"
+                  className={`rounded-2xl border px-5 py-4 text-center font-semibold transition ${theme.primaryButton}`}
+                >
+                  Marcar agora
+                </Link>
+
+                {whatsappUrl && (
+                  <a
+                    href={whatsappUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={`rounded-2xl border px-5 py-4 text-center font-semibold transition ${theme.secondaryButton}`}
+                  >
+                    Falar no WhatsApp
+                  </a>
+                )}
+              </div>
+
+              <div className={`grid gap-3 text-sm sm:grid-cols-3 ${theme.muted}`}>
+                {business.address && (
+                  <div className={`rounded-2xl border p-4 ${theme.card}`}>
+                    <p className="text-xs uppercase tracking-[0.25em] opacity-60">
+                      Local
+                    </p>
+
+                    <p className="mt-2 font-medium">{business.address}</p>
+                  </div>
+                )}
+
+                {phoneDisplay && (
+                  <div className={`rounded-2xl border p-4 ${theme.card}`}>
+                    <p className="text-xs uppercase tracking-[0.25em] opacity-60">
+                      Telefone
+                    </p>
+
+                    <p className="mt-2 font-medium">{phoneDisplay}</p>
+                  </div>
+                )}
+
+                {business.email && (
+                  <div className={`rounded-2xl border p-4 ${theme.card}`}>
+                    <p className="text-xs uppercase tracking-[0.25em] opacity-60">
+                      E-mail
+                    </p>
+
+                    <p className="mt-2 truncate font-medium">
+                      {business.email}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
-            <div className={`mt-8 grid gap-3 text-sm sm:grid-cols-3 ${theme.muted}`}>
-              {business.address && (
-                <div className={`rounded-2xl border p-4 ${theme.card}`}>
-                  <p className="text-xs uppercase tracking-[0.25em] opacity-60">
-                    Local
+            <div className={`rounded-[2rem] border p-4 ${theme.card}`}>
+              <div className="grid h-full min-h-[360px] gap-4">
+                <div className={`rounded-[1.7rem] border p-5 ${theme.cardStrong}`}>
+                  <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.muted}`}>
+                    Identidade do espaço
                   </p>
-                  <p className="mt-2 font-medium">{business.address}</p>
-                </div>
-              )}
 
-              {business.phone && (
-                <div className={`rounded-2xl border p-4 ${theme.card}`}>
-                  <p className="text-xs uppercase tracking-[0.25em] opacity-60">
-                    Telefone
-                  </p>
-                  <p className="mt-2 font-medium">+{business.phone}</p>
-                </div>
-              )}
+                  {businessLogo ? (
+                    <div className="mt-5 flex min-h-[300px] items-center justify-center rounded-[1.5rem] border border-current/10 bg-black p-8">
+                      <Image
+                        src={businessLogo}
+                        alt={`Logo ${business.name}`}
+                        width={420}
+                        height={420}
+                        priority
+                        className="h-auto max-h-72 w-auto max-w-full object-contain"
+                      />
+                    </div>
+                  ) : (
+                    <div className="mt-5 grid gap-3">
+                      <div className="h-36 rounded-[1.5rem] border border-current/10 bg-current/10" />
 
-              {business.email && (
-                <div className={`rounded-2xl border p-4 ${theme.card}`}>
-                  <p className="text-xs uppercase tracking-[0.25em] opacity-60">
-                    E-mail
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="h-24 rounded-2xl border border-current/10 bg-current/10" />
+                        <div className="h-24 rounded-2xl border border-current/10 bg-current/10" />
+                        <div className="h-24 rounded-2xl border border-current/10 bg-current/10" />
+                      </div>
+                    </div>
+                  )}
+
+                  <p className={`mt-5 text-sm leading-6 ${theme.muted}`}>
+                    {businessLogo
+                      ? "Página oficial para marcações online do espaço."
+                      : "Em breve esta área pode receber fotos reais do espaço, trabalhos realizados, antes/depois ou portfólio."}
                   </p>
-                  <p className="mt-2 font-medium">{business.email}</p>
                 </div>
-              )}
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className={`rounded-2xl border p-4 ${theme.cardStrong}`}>
+                    <p className={`text-xs uppercase tracking-[0.25em] ${theme.muted}`}>
+                      Reserva
+                    </p>
+
+                    <p className="mt-2 text-lg font-bold">Simples</p>
+                  </div>
+
+                  <div className={`rounded-2xl border p-4 ${theme.cardStrong}`}>
+                    <p className={`text-xs uppercase tracking-[0.25em] ${theme.muted}`}>
+                      Confirmação
+                    </p>
+
+                    <p className="mt-2 text-lg font-bold">Por e-mail</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="px-6 py-8 sm:px-8">
+          <div className="px-6 py-8 sm:px-8 lg:px-10">
+            <div
+              className={`mb-10 rounded-[2rem] border p-6 ${theme.card}`}
+            >
+              <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.muted}`}>
+                Como funciona
+              </p>
+
+              <div className="mt-5 grid gap-4 md:grid-cols-3">
+                <div>
+                  <p className="text-lg font-bold">1. Escolha</p>
+                  <p className={`mt-2 text-sm ${theme.muted}`}>
+                    Selecione um ou mais serviços para a mesma marcação.
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-lg font-bold">2. Agende</p>
+                  <p className={`mt-2 text-sm ${theme.muted}`}>
+                    Veja apenas dias e horários realmente disponíveis.
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-lg font-bold">3. Confirme</p>
+                  <p className={`mt-2 text-sm ${theme.muted}`}>
+                    Preencha os seus dados e receba a confirmação.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div id="servicos" className="scroll-mt-8">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
@@ -445,6 +621,7 @@ export default async function BookingPage({
                       className="flex justify-between gap-4 border-b border-current/10 pb-3 text-sm last:border-b-0 last:pb-0"
                     >
                       <span>{service.name}</span>
+
                       <span className="font-semibold">
                         {formatPrice(service.priceCents)}
                       </span>
@@ -457,6 +634,7 @@ export default async function BookingPage({
                     <p className={`text-xs uppercase tracking-[0.25em] ${theme.muted}`}>
                       Duração total
                     </p>
+
                     <p className="mt-2 text-xl font-semibold">
                       {formatDuration(totalDurationMin)}
                     </p>
@@ -466,6 +644,7 @@ export default async function BookingPage({
                     <p className={`text-xs uppercase tracking-[0.25em] ${theme.muted}`}>
                       Total estimado
                     </p>
+
                     <p className="mt-2 text-xl font-semibold">
                       {formatPrice(totalPriceCents)}
                     </p>
@@ -499,6 +678,7 @@ export default async function BookingPage({
                           className={`rounded-2xl border px-4 py-4 text-center text-sm opacity-40 ${theme.card}`}
                         >
                           {item.label}
+
                           <div className="mt-1 text-xs">Indisponível</div>
                         </div>
                       )

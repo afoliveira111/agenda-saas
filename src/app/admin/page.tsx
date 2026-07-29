@@ -56,26 +56,44 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   const theme = getAdminThemeClasses(currentAdminTheme)
   const currentBusinessSlug = await getCurrentBusinessSlug()
 
-  const [businesses, bookingCount, customerCount, serviceCount] =
-    await Promise.all([
-      prisma.business.findMany({
-        orderBy: {
-          createdAt: "asc",
-        },
-        include: {
-          _count: {
-            select: {
-              bookings: true,
-              customers: true,
-              services: true,
-            },
+  const [
+    businesses,
+    bookingCount,
+    customerCount,
+    serviceCount,
+    userCount,
+    adminCount,
+    ownerCount,
+  ] = await Promise.all([
+    prisma.business.findMany({
+      orderBy: {
+        createdAt: "asc",
+      },
+      include: {
+        _count: {
+          select: {
+            bookings: true,
+            customers: true,
+            services: true,
           },
         },
-      }),
-      prisma.booking.count(),
-      prisma.customer.count(),
-      prisma.service.count(),
-    ])
+      },
+    }),
+    prisma.booking.count(),
+    prisma.customer.count(),
+    prisma.service.count(),
+    prisma.user.count(),
+    prisma.user.count({
+      where: {
+        role: "ADMIN",
+      },
+    }),
+    prisma.user.count({
+      where: {
+        role: "OWNER",
+      },
+    }),
+  ])
 
   const selectedBusiness =
     businesses.find((business) => business.slug === currentBusinessSlug) ??
@@ -99,8 +117,8 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
               </h1>
 
               <p className={`mt-4 max-w-2xl ${theme.muted}`}>
-                Controle os negócios cadastrados, escolha o negócio em gestão e
-                altere os temas visuais.
+                Controle negócios, utilizadores, permissões, temas e áreas
+                técnicas da plataforma.
               </p>
 
               <div className="mt-5 flex flex-wrap gap-3">
@@ -122,17 +140,17 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
 
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link
-                href="/dashboard"
+                href="/admin/users"
                 className={`rounded-2xl border px-5 py-3 text-center font-semibold transition ${theme.primaryButton}`}
               >
-                Abrir painel
+                Utilizadores
               </Link>
 
               <Link
-                href="/dashboard/tools"
+                href="/dashboard"
                 className={`rounded-2xl border px-5 py-3 text-center font-semibold transition ${theme.secondaryButton}`}
               >
-                Ferramentas
+                Abrir painel
               </Link>
 
               <Link
@@ -153,23 +171,23 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
             </div>
 
             <div className={`rounded-3xl border p-5 ${theme.card}`}>
-              <p className={`text-sm ${theme.muted}`}>Marcações</p>
+              <p className={`text-sm ${theme.muted}`}>Utilizadores</p>
               <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
-                {bookingCount}
+                {userCount}
               </p>
             </div>
 
             <div className={`rounded-3xl border p-5 ${theme.card}`}>
-              <p className={`text-sm ${theme.muted}`}>Clientes</p>
+              <p className={`text-sm ${theme.muted}`}>Admins</p>
               <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
-                {customerCount}
+                {adminCount}
               </p>
             </div>
 
             <div className={`rounded-3xl border p-5 ${theme.card}`}>
-              <p className={`text-sm ${theme.muted}`}>Serviços</p>
+              <p className={`text-sm ${theme.muted}`}>Donas</p>
               <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
-                {serviceCount}
+                {ownerCount}
               </p>
             </div>
           </div>
@@ -191,54 +209,58 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
           <div className="grid gap-6">
             <div className={`rounded-[2rem] border p-6 shadow-2xl ${theme.panel}`}>
               <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
-                Negócio selecionado
+                Acessos principais
               </p>
 
-              {selectedBusiness ? (
-                <>
-                  <h2 className={`mt-3 text-2xl font-bold ${theme.title}`}>
-                    {selectedBusiness.name}
-                  </h2>
+              <h2 className={`mt-3 text-2xl font-bold ${theme.title}`}>
+                Gestão da plataforma
+              </h2>
 
-                  <p className={`mt-3 text-sm ${theme.muted}`}>
-                    Tema atual: {formatBusinessTheme(selectedBusiness.theme)}
-                  </p>
+              <p className={`mt-3 text-sm ${theme.muted}`}>
+                Área rápida para gerir utilizadores, negócios, ferramentas e
+                painéis.
+              </p>
 
-                  <div className="mt-5 grid gap-3">
+              <div className="mt-5 grid gap-3">
+                <Link
+                  href="/admin/users"
+                  className={`rounded-2xl border px-5 py-4 text-center font-semibold transition ${theme.primaryButton}`}
+                >
+                  Gerir utilizadores
+                </Link>
+
+                <Link
+                  href="/dashboard/businesses"
+                  className={`rounded-2xl border px-5 py-4 text-center font-semibold transition ${theme.secondaryButton}`}
+                >
+                  Gerir negócios
+                </Link>
+
+                <Link
+                  href="/dashboard/tools"
+                  className={`rounded-2xl border px-5 py-4 text-center font-semibold transition ${theme.secondaryButton}`}
+                >
+                  Ferramentas
+                </Link>
+
+                {selectedBusiness && (
+                  <>
                     <Link
                       href="/dashboard"
-                      className={`rounded-2xl border px-5 py-4 text-center font-semibold transition ${theme.primaryButton}`}
+                      className={`rounded-2xl border px-5 py-4 text-center font-semibold transition ${theme.secondaryButton}`}
                     >
-                      Abrir painel deste negócio
+                      Painel do negócio atual
                     </Link>
 
                     <Link
                       href={`/book/${selectedBusiness.slug}`}
                       className={`rounded-2xl border px-5 py-4 text-center font-semibold transition ${theme.secondaryButton}`}
                     >
-                      Abrir página pública
+                      Página pública atual
                     </Link>
-
-                    <Link
-                      href="/dashboard/businesses"
-                      className={`rounded-2xl border px-5 py-4 text-center font-semibold transition ${theme.secondaryButton}`}
-                    >
-                      Gerir negócios
-                    </Link>
-
-                    <Link
-                      href="/dashboard/tools"
-                      className={`rounded-2xl border px-5 py-4 text-center font-semibold transition ${theme.secondaryButton}`}
-                    >
-                      Ferramentas
-                    </Link>
-                  </div>
-                </>
-              ) : (
-                <p className={`mt-3 text-sm ${theme.muted}`}>
-                  Nenhum negócio cadastrado.
-                </p>
-              )}
+                  </>
+                )}
+              </div>
             </div>
 
             <div className={`rounded-[2rem] border p-6 shadow-2xl ${theme.panel}`}>
@@ -268,41 +290,34 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
 
             <div className={`rounded-[2rem] border p-6 shadow-2xl ${theme.panel}`}>
               <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
-                Guia rápido
+                Resumo geral
               </p>
 
               <h2 className={`mt-3 text-2xl font-bold ${theme.title}`}>
-                Áreas principais
+                Dados da plataforma
               </h2>
 
               <div className="mt-5 grid gap-3">
-                <Link
-                  href="/dashboard/bookings"
-                  className={`rounded-2xl border px-5 py-4 font-semibold transition ${theme.action}`}
-                >
-                  Marcações
-                </Link>
+                <div className={`rounded-2xl border p-4 ${theme.card}`}>
+                  <p className={`text-sm ${theme.muted}`}>Marcações</p>
+                  <p className={`mt-1 text-2xl font-bold ${theme.title}`}>
+                    {bookingCount}
+                  </p>
+                </div>
 
-                <Link
-                  href="/dashboard/customers"
-                  className={`rounded-2xl border px-5 py-4 font-semibold transition ${theme.action}`}
-                >
-                  Clientes
-                </Link>
+                <div className={`rounded-2xl border p-4 ${theme.card}`}>
+                  <p className={`text-sm ${theme.muted}`}>Clientes</p>
+                  <p className={`mt-1 text-2xl font-bold ${theme.title}`}>
+                    {customerCount}
+                  </p>
+                </div>
 
-                <Link
-                  href="/dashboard/services"
-                  className={`rounded-2xl border px-5 py-4 font-semibold transition ${theme.action}`}
-                >
-                  Serviços
-                </Link>
-
-                <Link
-                  href="/dashboard/settings/business"
-                  className={`rounded-2xl border px-5 py-4 font-semibold transition ${theme.action}`}
-                >
-                  Dados e tema
-                </Link>
+                <div className={`rounded-2xl border p-4 ${theme.card}`}>
+                  <p className={`text-sm ${theme.muted}`}>Serviços</p>
+                  <p className={`mt-1 text-2xl font-bold ${theme.title}`}>
+                    {serviceCount}
+                  </p>
+                </div>
               </div>
             </div>
           </div>

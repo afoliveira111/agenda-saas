@@ -1,27 +1,31 @@
 import { NextRequest, NextResponse } from "next/server"
 
-const COOKIE_NAME = "agenda_saas_dashboard_session"
+const SESSION_COOKIE_NAME = "agenda_saas_session"
 
-export function proxy(request: NextRequest) {
-  const sessionToken = process.env.DASHBOARD_SESSION_TOKEN
+function getSafeNextUrl(request: NextRequest) {
+  const nextUrl = `${request.nextUrl.pathname}${request.nextUrl.search}`
 
-  if (!sessionToken) {
-    const loginUrl = new URL("/login", request.url)
-    loginUrl.searchParams.set("error", "config")
-
-    return NextResponse.redirect(loginUrl)
+  if (!nextUrl.startsWith("/")) {
+    return "/dashboard"
   }
 
-  const currentSession = request.cookies.get(COOKIE_NAME)?.value
+  if (nextUrl.startsWith("//")) {
+    return "/dashboard"
+  }
 
-  if (currentSession === sessionToken) {
+  return nextUrl
+}
+
+export function proxy(request: NextRequest) {
+  const sessionToken = request.cookies.get(SESSION_COOKIE_NAME)?.value
+
+  if (sessionToken) {
     return NextResponse.next()
   }
 
   const loginUrl = new URL("/login", request.url)
-  const nextUrl = `${request.nextUrl.pathname}${request.nextUrl.search}`
 
-  loginUrl.searchParams.set("next", nextUrl)
+  loginUrl.searchParams.set("next", getSafeNextUrl(request))
 
   return NextResponse.redirect(loginUrl)
 }
