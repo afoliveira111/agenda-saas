@@ -56,6 +56,7 @@ function addMinutes(date: Date, minutes: number) {
 
 function timeToMinutes(time: string) {
   const [hours, minutes] = time.split(":").map(Number)
+
   return hours * 60 + minutes
 }
 
@@ -140,22 +141,6 @@ function formatPhoneDisplay(phone: string | null) {
   }
 
   return `+${digitsOnly}`
-}
-
-function getWhatsAppPhone(phone: string | null) {
-  if (!phone) {
-    return ""
-  }
-
-  return phone.replace(/\D/g, "")
-}
-
-function createBusinessWhatsAppMessage(businessName: string) {
-  return [
-    "Olá, tudo bem?",
-    "",
-    `Vi a página de marcação do ${businessName} e gostaria de tirar uma dúvida.`,
-  ].join("\n")
 }
 
 function getBusinessLogo({
@@ -330,109 +315,136 @@ export default async function BookingPage({
   }
 
   const phoneDisplay = formatPhoneDisplay(business.phone)
-  const whatsappPhone = getWhatsAppPhone(business.phone)
   const businessLogo = getBusinessLogo({
     slug: business.slug,
     name: business.name,
   })
 
-  const whatsappUrl = whatsappPhone
-    ? `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
-        createBusinessWhatsAppMessage(business.name),
-      )}`
-    : ""
+  const hasContactInfo = Boolean(
+    business.address || phoneDisplay || business.email,
+  )
 
   return (
     <main className={`min-h-screen ${theme.page}`}>
       <section className="mx-auto max-w-6xl px-5 py-8 sm:px-6 sm:py-12">
-        <div className={`overflow-hidden rounded-[2rem] border shadow-2xl ${theme.cardStrong}`}>
-          <div className="grid gap-8 border-b border-current/10 px-6 py-8 sm:px-8 lg:grid-cols-[1.1fr_0.9fr] lg:px-10 lg:py-10">
-            <div className="flex flex-col justify-between gap-8">
+        <div
+          className={`overflow-hidden rounded-[2rem] border shadow-2xl ${theme.cardStrong}`}
+        >
+          <div className="grid lg:grid-cols-[1.15fr_0.85fr]">
+            <div className="flex flex-col justify-between gap-8 border-b border-current/10 px-6 py-8 sm:px-8 lg:border-b-0 lg:border-r lg:px-10 lg:py-10">
               <div>
-                <p className={`text-xs font-semibold uppercase tracking-[0.35em] ${theme.muted}`}>
+                <p
+                  className={`text-xs font-semibold uppercase tracking-[0.35em] ${theme.muted}`}
+                >
                   Marcação online
                 </p>
 
-                <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-6xl">
+                <h1 className="mt-4 max-w-2xl text-4xl font-bold tracking-tight sm:text-6xl">
                   {business.name}
                 </h1>
 
                 {business.description ? (
-                  <p className={`mt-5 max-w-2xl text-lg leading-8 ${theme.muted}`}>
+                  <p
+                    className={`mt-5 max-w-2xl text-lg leading-8 ${theme.muted}`}
+                  >
                     {business.description}
                   </p>
                 ) : (
-                  <p className={`mt-5 max-w-2xl text-lg leading-8 ${theme.muted}`}>
-                    Escolha o serviço, selecione uma data disponível e confirme a
-                    sua marcação online em poucos passos.
+                  <p
+                    className={`mt-5 max-w-2xl text-lg leading-8 ${theme.muted}`}
+                  >
+                    Escolha o serviço, selecione uma data disponível e confirme
+                    a sua marcação online em poucos passos.
                   </p>
                 )}
-              </div>
 
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <Link
-                  href="#servicos"
-                  className={`rounded-2xl border px-5 py-4 text-center font-semibold transition ${theme.primaryButton}`}
-                >
-                  Marcar agora
-                </Link>
-
-                {whatsappUrl && (
-                  <a
-                    href={whatsappUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className={`rounded-2xl border px-5 py-4 text-center font-semibold transition ${theme.secondaryButton}`}
+                {hasContactInfo && (
+                  <div
+                    className={`mt-8 grid gap-3 text-sm sm:grid-cols-3 ${theme.muted}`}
                   >
-                    Falar no WhatsApp
-                  </a>
+                    {business.address && (
+                      <div className={`rounded-2xl border p-4 ${theme.card}`}>
+                        <p className="text-xs uppercase tracking-[0.25em] opacity-60">
+                          Local
+                        </p>
+
+                        <p className="mt-2 font-medium">{business.address}</p>
+                      </div>
+                    )}
+
+                    {phoneDisplay && (
+                      <div className={`rounded-2xl border p-4 ${theme.card}`}>
+                        <p className="text-xs uppercase tracking-[0.25em] opacity-60">
+                          Telefone
+                        </p>
+
+                        <p className="mt-2 font-medium">{phoneDisplay}</p>
+                      </div>
+                    )}
+
+                    {business.email && (
+                      <div className={`rounded-2xl border p-4 ${theme.card}`}>
+                        <p className="text-xs uppercase tracking-[0.25em] opacity-60">
+                          E-mail
+                        </p>
+
+                        <p className="mt-2 truncate font-medium">
+                          {business.email}
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
 
-              <div className={`grid gap-3 text-sm sm:grid-cols-3 ${theme.muted}`}>
-                {business.address && (
-                  <div className={`rounded-2xl border p-4 ${theme.card}`}>
-                    <p className="text-xs uppercase tracking-[0.25em] opacity-60">
-                      Local
-                    </p>
+              <div className={`rounded-[2rem] border p-5 ${theme.card}`}>
+                <p
+                  className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.muted}`}
+                >
+                  Como funciona
+                </p>
 
-                    <p className="mt-2 font-medium">{business.address}</p>
-                  </div>
-                )}
+                <div className="mt-5 grid gap-4 md:grid-cols-3">
+                  <div>
+                    <p className="text-lg font-bold">1. Escolha</p>
 
-                {phoneDisplay && (
-                  <div className={`rounded-2xl border p-4 ${theme.card}`}>
-                    <p className="text-xs uppercase tracking-[0.25em] opacity-60">
-                      Telefone
-                    </p>
-
-                    <p className="mt-2 font-medium">{phoneDisplay}</p>
-                  </div>
-                )}
-
-                {business.email && (
-                  <div className={`rounded-2xl border p-4 ${theme.card}`}>
-                    <p className="text-xs uppercase tracking-[0.25em] opacity-60">
-                      E-mail
-                    </p>
-
-                    <p className="mt-2 truncate font-medium">
-                      {business.email}
+                    <p className={`mt-2 text-sm leading-6 ${theme.muted}`}>
+                      Selecione um ou mais serviços.
                     </p>
                   </div>
-                )}
+
+                  <div>
+                    <p className="text-lg font-bold">2. Agende</p>
+
+                    <p className={`mt-2 text-sm leading-6 ${theme.muted}`}>
+                      Escolha uma data e horário disponível.
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-lg font-bold">3. Confirme</p>
+
+                    <p className={`mt-2 text-sm leading-6 ${theme.muted}`}>
+                      Preencha os dados e receba a confirmação.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className={`rounded-[2rem] border p-4 ${theme.card}`}>
-              <div className="grid h-full min-h-[360px] gap-4">
-                <div className={`rounded-[1.7rem] border p-5 ${theme.cardStrong}`}>
-                  <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.muted}`}>
+            <div className="flex items-center px-6 py-8 sm:px-8 lg:px-10 lg:py-10">
+              <div className={`w-full rounded-[2rem] border p-4 ${theme.card}`}>
+                <div
+                  className={`rounded-[1.7rem] border p-5 ${theme.cardStrong}`}
+                >
+                  <p
+                    className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.muted}`}
+                  >
                     Identidade do espaço
                   </p>
 
                   {businessLogo ? (
-                    <div className="mt-5 flex min-h-[300px] items-center justify-center rounded-[1.5rem] border border-current/10 bg-black p-8">
+                    <div className="mt-5 flex min-h-[320px] items-center justify-center rounded-[1.5rem] border border-current/10 bg-black p-8">
                       <Image
                         src={businessLogo}
                         alt={`Logo ${business.name}`}
@@ -461,17 +473,25 @@ export default async function BookingPage({
                   </p>
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className={`rounded-2xl border p-4 ${theme.cardStrong}`}>
-                    <p className={`text-xs uppercase tracking-[0.25em] ${theme.muted}`}>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <div
+                    className={`rounded-2xl border p-4 ${theme.cardStrong}`}
+                  >
+                    <p
+                      className={`text-xs uppercase tracking-[0.25em] ${theme.muted}`}
+                    >
                       Reserva
                     </p>
 
                     <p className="mt-2 text-lg font-bold">Simples</p>
                   </div>
 
-                  <div className={`rounded-2xl border p-4 ${theme.cardStrong}`}>
-                    <p className={`text-xs uppercase tracking-[0.25em] ${theme.muted}`}>
+                  <div
+                    className={`rounded-2xl border p-4 ${theme.cardStrong}`}
+                  >
+                    <p
+                      className={`text-xs uppercase tracking-[0.25em] ${theme.muted}`}
+                    >
                       Confirmação
                     </p>
 
@@ -482,42 +502,13 @@ export default async function BookingPage({
             </div>
           </div>
 
-          <div className="px-6 py-8 sm:px-8 lg:px-10">
-            <div
-              className={`mb-10 rounded-[2rem] border p-6 ${theme.card}`}
-            >
-              <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.muted}`}>
-                Como funciona
-              </p>
-
-              <div className="mt-5 grid gap-4 md:grid-cols-3">
-                <div>
-                  <p className="text-lg font-bold">1. Escolha</p>
-                  <p className={`mt-2 text-sm ${theme.muted}`}>
-                    Selecione um ou mais serviços para a mesma marcação.
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-lg font-bold">2. Agende</p>
-                  <p className={`mt-2 text-sm ${theme.muted}`}>
-                    Veja apenas dias e horários realmente disponíveis.
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-lg font-bold">3. Confirme</p>
-                  <p className={`mt-2 text-sm ${theme.muted}`}>
-                    Preencha os seus dados e receba a confirmação.
-                  </p>
-                </div>
-              </div>
-            </div>
-
+          <div className="border-t border-current/10 px-6 py-8 sm:px-8 lg:px-10">
             <div id="servicos" className="scroll-mt-8">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.muted}`}>
+                  <p
+                    className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.muted}`}
+                  >
                     Passo 1
                   </p>
 
@@ -604,7 +595,9 @@ export default async function BookingPage({
                 id="resumo"
                 className={`mt-10 scroll-mt-8 rounded-[2rem] border p-6 shadow-xl ${theme.card}`}
               >
-                <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.muted}`}>
+                <p
+                  className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.muted}`}
+                >
                   Resumo
                 </p>
 
@@ -630,8 +623,12 @@ export default async function BookingPage({
                 </div>
 
                 <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                  <div className={`rounded-2xl border p-4 ${theme.cardStrong}`}>
-                    <p className={`text-xs uppercase tracking-[0.25em] ${theme.muted}`}>
+                  <div
+                    className={`rounded-2xl border p-4 ${theme.cardStrong}`}
+                  >
+                    <p
+                      className={`text-xs uppercase tracking-[0.25em] ${theme.muted}`}
+                    >
                       Duração total
                     </p>
 
@@ -640,8 +637,12 @@ export default async function BookingPage({
                     </p>
                   </div>
 
-                  <div className={`rounded-2xl border p-4 ${theme.cardStrong}`}>
-                    <p className={`text-xs uppercase tracking-[0.25em] ${theme.muted}`}>
+                  <div
+                    className={`rounded-2xl border p-4 ${theme.cardStrong}`}
+                  >
+                    <p
+                      className={`text-xs uppercase tracking-[0.25em] ${theme.muted}`}
+                    >
                       Total estimado
                     </p>
 
@@ -655,7 +656,9 @@ export default async function BookingPage({
 
             {selectedServices.length > 0 && (
               <div id="datas" className="mt-10 scroll-mt-8">
-                <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.muted}`}>
+                <p
+                  className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.muted}`}
+                >
                   Passo 2
                 </p>
 
@@ -709,7 +712,9 @@ export default async function BookingPage({
 
             {selectedServices.length > 0 && date && (
               <div id="horarios" className="mt-10 scroll-mt-8">
-                <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.muted}`}>
+                <p
+                  className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.muted}`}
+                >
                   Passo 3
                 </p>
 
