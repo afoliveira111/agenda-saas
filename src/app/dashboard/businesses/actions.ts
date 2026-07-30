@@ -2,8 +2,12 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { normalizeBusinessTheme } from "@/lib/business-theme"
+import {
+  getCurrentBusinessSlug,
+  setCurrentBusinessSlug,
+} from "@/lib/current-business"
 import { prisma } from "@/lib/prisma"
-import { setCurrentBusinessSlug } from "@/lib/current-business"
 
 type BusinessFormValues = {
   name: string
@@ -13,12 +17,13 @@ type BusinessFormValues = {
   notificationEmail: string
   address: string
   description: string
+  theme: string
   createExampleService: string
 }
 
 function redirectWithFormError(
   message: string,
-  values: BusinessFormValues
+  values: BusinessFormValues,
 ): never {
   const params = new URLSearchParams()
 
@@ -136,6 +141,42 @@ function getDefaultWorkHours(businessId: string) {
   ]
 }
 
+function validateBusinessBasics({
+  name,
+  slug,
+  phone,
+  email,
+  notificationEmail,
+}: {
+  name: string
+  slug: string
+  phone: string
+  email: string
+  notificationEmail: string
+}) {
+  if (name.length < 2 || name.length > 80) {
+    return "O nome do negócio deve ter entre 2 e 80 caracteres."
+  }
+
+  if (!slug || slug.length < 3 || slug.length > 60 || !isValidSlug(slug)) {
+    return "O slug deve ter entre 3 e 60 caracteres, usando letras, números e hífen."
+  }
+
+  if (!isValidPhone(phone)) {
+    return "Informe um telefone válido. Exemplo: +351 912 345 678."
+  }
+
+  if (!isValidEmail(email)) {
+    return "Informe um e-mail público válido."
+  }
+
+  if (!isValidEmail(notificationEmail)) {
+    return "Informe um e-mail de notificação válido."
+  }
+
+  return null
+}
+
 export async function createBusinessAction(formData: FormData) {
   const formValues: BusinessFormValues = {
     name: normalizeText(formData.get("name")),
@@ -145,6 +186,7 @@ export async function createBusinessAction(formData: FormData) {
     notificationEmail: normalizeText(formData.get("notificationEmail")),
     address: normalizeText(formData.get("address")),
     description: normalizeText(formData.get("description")),
+    theme: normalizeText(formData.get("theme")) || "LUXURY",
     createExampleService:
       formData.get("createExampleService") === "true" ? "true" : "false",
   }
@@ -154,38 +196,19 @@ export async function createBusinessAction(formData: FormData) {
   const phone = formValues.phone ? normalizePhone(formValues.phone) : ""
   const email = formValues.email.toLowerCase()
   const notificationEmail = formValues.notificationEmail.toLowerCase()
+  const theme = normalizeBusinessTheme(formValues.theme)
   const createExampleService = formValues.createExampleService === "true"
 
-  if (name.length < 2 || name.length > 80) {
-    redirectWithFormError(
-      "O nome do negócio deve ter entre 2 e 80 caracteres.",
-      formValues
-    )
-  }
+  const validationError = validateBusinessBasics({
+    name,
+    slug,
+    phone: formValues.phone,
+    email,
+    notificationEmail,
+  })
 
-  if (!slug || slug.length < 3 || slug.length > 60 || !isValidSlug(slug)) {
-    redirectWithFormError(
-      "O slug deve ter entre 3 e 60 caracteres, usando letras, números e hífen.",
-      formValues
-    )
-  }
-
-  if (!isValidPhone(formValues.phone)) {
-    redirectWithFormError(
-      "Informe um telefone válido. Exemplo: +351 912 345 678.",
-      formValues
-    )
-  }
-
-  if (!isValidEmail(email)) {
-    redirectWithFormError("Informe um e-mail público válido.", formValues)
-  }
-
-  if (!isValidEmail(notificationEmail)) {
-    redirectWithFormError(
-      "Informe um e-mail de notificação válido.",
-      formValues
-    )
+  if (validationError) {
+    redirectWithFormError(validationError, formValues)
   }
 
   const existingBusiness = await prisma.business.findUnique({
@@ -208,6 +231,7 @@ export async function createBusinessAction(formData: FormData) {
         notificationEmail: notificationEmail || email || null,
         address: formValues.address || null,
         description: formValues.description || null,
+        theme,
       },
     })
 
@@ -224,6 +248,7 @@ export async function createBusinessAction(formData: FormData) {
           priceCents: 1500,
           durationMin: 60,
           active: true,
+          sortOrder: 1,
         },
       })
     }
@@ -231,10 +256,105 @@ export async function createBusinessAction(formData: FormData) {
     return createdBusiness
   })
 
+  await setCurrentBusinessSlug(business.slug)
+
+  revalidatePath("/admin")
+  revalidatePath("/dashboard")
   revalidatePath("/dashboard/businesses")
   revalidatePath(`/book/${business.slug}`)
 
-  redirectWithSuccess(`Negócio criado com sucesso: /book/${business.slug}`)
+  redirectWithSuccess(
+    `Negócio criado com sucesso e selecionado no painel: /book/${business.slug}`,
+  )
+}
+
+export async function updateBusinessAction(formData: FormData) {
+  const businessId = normalizeText(formData.get("businessId"))
+
+  if (!businessId) {
+    redirectWithError("Negócio não informado.")
+  }
+
+  const name = normalizeText(formData.get("name"))
+  const slug = createSlugFromText(
+    normalizeText(formData.get("slug")) || name,
+  )
+  const phoneRaw = normalizeText(formData.get("phone"))
+  const phone = phoneRaw ? normalizePhone(phoneRaw) : ""
+  const email = normalizeText(formData.get("email")).toLowerCase()
+  const notificationEmail = normalizeText(
+    formData.get("notificationEmail"),
+  ).toLowerCase()
+  const address = normalizeText(formData.get("address"))
+  const description = normalizeText(formData.get("description"))
+  const theme = normalizeBusinessTheme(normalizeText(formData.get("theme")))
+
+  const validationError = validateBusinessBasics({
+    name,
+    slug,
+    phone: phoneRaw,
+    email,
+    notificationEmail,
+  })
+
+  if (validationError) {
+    redirectWithError(validationError)
+  }
+
+  const business = await prisma.business.findUnique({
+    where: {
+      id: businessId,
+    },
+  })
+
+  if (!business) {
+    redirectWithError("Negócio não encontrado.")
+  }
+
+  const existingBusiness = await prisma.business.findFirst({
+    where: {
+      slug,
+      NOT: {
+        id: business.id,
+      },
+    },
+  })
+
+  if (existingBusiness) {
+    redirectWithError("Já existe outro negócio com este slug.")
+  }
+
+  const previousSlug = business.slug
+  const currentBusinessSlug = await getCurrentBusinessSlug()
+
+  const updatedBusiness = await prisma.business.update({
+    where: {
+      id: business.id,
+    },
+    data: {
+      name,
+      slug,
+      phone: phone || null,
+      email: email || null,
+      notificationEmail: notificationEmail || email || null,
+      address: address || null,
+      description: description || null,
+      theme,
+    },
+  })
+
+  if (currentBusinessSlug === previousSlug) {
+    await setCurrentBusinessSlug(updatedBusiness.slug)
+  }
+
+  revalidatePath("/admin")
+  revalidatePath("/dashboard")
+  revalidatePath("/dashboard/businesses")
+  revalidatePath("/dashboard/settings/business")
+  revalidatePath(`/book/${previousSlug}`)
+  revalidatePath(`/book/${updatedBusiness.slug}`)
+
+  redirectWithSuccess(`Negócio atualizado com sucesso: /book/${updatedBusiness.slug}`)
 }
 
 export async function selectBusinessAction(formData: FormData) {
@@ -263,6 +383,7 @@ export async function selectBusinessAction(formData: FormData) {
   revalidatePath("/dashboard/blocked-days")
   revalidatePath("/dashboard/settings/business")
   revalidatePath("/dashboard/businesses")
+  revalidatePath("/admin")
 
   redirectWithSuccess(`Painel alterado para: ${business.name}`)
 }

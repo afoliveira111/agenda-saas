@@ -14,12 +14,41 @@ function normalizeText(value: FormDataEntryValue | null) {
   return String(value ?? "").trim()
 }
 
+function getSafeRedirectPath(value: FormDataEntryValue | null) {
+  const redirectTo = normalizeText(value)
+
+  if (
+    redirectTo === "/admin" ||
+    redirectTo.startsWith("/admin/") ||
+    redirectTo === "/dashboard/businesses" ||
+    redirectTo.startsWith("/dashboard/businesses/") ||
+    redirectTo === "/dashboard/tools" ||
+    redirectTo.startsWith("/dashboard/tools/")
+  ) {
+    return redirectTo
+  }
+
+  return "/admin"
+}
+
 function redirectWithSuccess(message: string): never {
   redirect(`/admin?success=${encodeURIComponent(message)}`)
 }
 
 function redirectWithError(message: string): never {
   redirect(`/admin?error=${encodeURIComponent(message)}`)
+}
+
+function redirectBackWithSuccess({
+  redirectTo,
+  message,
+}: {
+  redirectTo: string
+  message: string
+}): never {
+  const separator = redirectTo.includes("?") ? "&" : "?"
+
+  redirect(`${redirectTo}${separator}success=${encodeURIComponent(message)}`)
 }
 
 export async function selectAdminBusinessAction(formData: FormData) {
@@ -96,6 +125,7 @@ export async function updateAdminBusinessThemeAction(formData: FormData) {
 
 export async function updateAdminThemeAction(formData: FormData) {
   const adminTheme = normalizeAdminTheme(normalizeText(formData.get("adminTheme")))
+  const redirectTo = getSafeRedirectPath(formData.get("redirectTo"))
 
   const cookieStore = await cookies()
 
@@ -110,6 +140,12 @@ export async function updateAdminThemeAction(formData: FormData) {
   })
 
   revalidatePath("/admin")
+  revalidatePath("/admin/users")
+  revalidatePath("/dashboard/businesses")
+  revalidatePath("/dashboard/tools")
 
-  redirectWithSuccess("Tema do admin atualizado com sucesso.")
+  redirectBackWithSuccess({
+    redirectTo,
+    message: "Tema do admin atualizado com sucesso.",
+  })
 }
