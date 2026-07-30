@@ -10,6 +10,8 @@ import {
   createServiceCategoryAction,
   deleteServiceAction,
   deleteServiceCategoryAction,
+  moveServiceAction,
+  moveServiceCategoryAction,
   toggleServiceActiveAction,
   updateServiceAction,
   updateServiceCategoryAction,
@@ -36,6 +38,7 @@ type ServiceCardService = {
   priceCents: number
   durationMin: number
   active: boolean
+  sortOrder: number
   categoryId: string | null
   category: {
     id: string
@@ -167,6 +170,76 @@ function CategorySelect({
   )
 }
 
+type MoveServiceButtonsProps = {
+  serviceId: string
+  theme: DashboardTheme
+}
+
+function MoveServiceButtons({ serviceId, theme }: MoveServiceButtonsProps) {
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      <form action={moveServiceAction}>
+        <input type="hidden" name="serviceId" value={serviceId} />
+        <input type="hidden" name="direction" value="up" />
+
+        <button
+          type="submit"
+          className={`w-full rounded-2xl border px-3 py-3 text-sm font-semibold transition ${theme.secondaryButton}`}
+        >
+          Subir
+        </button>
+      </form>
+
+      <form action={moveServiceAction}>
+        <input type="hidden" name="serviceId" value={serviceId} />
+        <input type="hidden" name="direction" value="down" />
+
+        <button
+          type="submit"
+          className={`w-full rounded-2xl border px-3 py-3 text-sm font-semibold transition ${theme.secondaryButton}`}
+        >
+          Descer
+        </button>
+      </form>
+    </div>
+  )
+}
+
+type MoveCategoryButtonsProps = {
+  categoryId: string
+  theme: DashboardTheme
+}
+
+function MoveCategoryButtons({ categoryId, theme }: MoveCategoryButtonsProps) {
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      <form action={moveServiceCategoryAction}>
+        <input type="hidden" name="categoryId" value={categoryId} />
+        <input type="hidden" name="direction" value="up" />
+
+        <button
+          type="submit"
+          className={`w-full rounded-2xl border px-3 py-3 text-sm font-semibold transition ${theme.secondaryButton}`}
+        >
+          Subir
+        </button>
+      </form>
+
+      <form action={moveServiceCategoryAction}>
+        <input type="hidden" name="categoryId" value={categoryId} />
+        <input type="hidden" name="direction" value="down" />
+
+        <button
+          type="submit"
+          className={`w-full rounded-2xl border px-3 py-3 text-sm font-semibold transition ${theme.secondaryButton}`}
+        >
+          Descer
+        </button>
+      </form>
+    </div>
+  )
+}
+
 type ServiceCardProps = {
   service: ServiceCardService
   categories: ServiceCategoryOption[]
@@ -205,6 +278,10 @@ function ServiceCard({
               {service.category?.name || "Sem categoria"}
             </span>
 
+            <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${theme.badge}`}>
+              Ordem {service.sortOrder || "-"}
+            </span>
+
             <span className={`text-sm ${theme.muted}`}>
               {formatDuration(service.durationMin)} ·{" "}
               {formatPrice(service.priceCents)}
@@ -230,7 +307,9 @@ function ServiceCard({
           )}
         </div>
 
-        <div className="flex flex-col gap-2 sm:min-w-36">
+        <div className="flex flex-col gap-2 sm:min-w-40">
+          <MoveServiceButtons serviceId={service.id} theme={theme} />
+
           <form action={toggleServiceActiveAction}>
             <input type="hidden" name="serviceId" value={service.id} />
             <input type="hidden" name="active" value={String(!service.active)} />
@@ -416,6 +495,9 @@ export default async function DashboardServicesPage({
             sortOrder: "asc",
           },
           {
+            createdAt: "asc",
+          },
+          {
             name: "asc",
           },
         ],
@@ -431,6 +513,9 @@ export default async function DashboardServicesPage({
         orderBy: [
           {
             active: "desc",
+          },
+          {
+            sortOrder: "asc",
           },
           {
             createdAt: "asc",
@@ -495,8 +580,8 @@ export default async function DashboardServicesPage({
               </h1>
 
               <p className={`mt-4 max-w-2xl ${theme.muted}`}>
-                Organize os serviços por categoria, edite valores, durações e
-                controle o que aparece na página pública.
+                Organize categorias e serviços na ordem em que devem aparecer
+                na página pública.
               </p>
             </div>
 
@@ -619,6 +704,24 @@ export default async function DashboardServicesPage({
                       key={category.id}
                       className={`rounded-3xl border p-4 ${theme.card}`}
                     >
+                      <div className="mb-3 flex items-center justify-between gap-3">
+                        <div>
+                          <p className={`text-xs font-semibold uppercase tracking-[0.25em] ${theme.subtle}`}>
+                            Ordem {category.sortOrder || "-"}
+                          </p>
+
+                          <p className={`mt-1 text-sm ${theme.muted}`}>
+                            {category._count.services} serviço
+                            {category._count.services === 1 ? "" : "s"}
+                          </p>
+                        </div>
+
+                        <MoveCategoryButtons
+                          categoryId={category.id}
+                          theme={theme}
+                        />
+                      </div>
+
                       <form
                         action={updateServiceCategoryAction}
                         className="grid gap-3"
@@ -643,14 +746,12 @@ export default async function DashboardServicesPage({
                           className={compactInputClasses}
                         />
 
-                        <div className="flex flex-col gap-2 sm:flex-row">
-                          <button
-                            type="submit"
-                            className={`flex-1 rounded-2xl border px-4 py-3 text-sm font-semibold transition ${theme.secondaryButton}`}
-                          >
-                            Guardar
-                          </button>
-                        </div>
+                        <button
+                          type="submit"
+                          className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${theme.secondaryButton}`}
+                        >
+                          Guardar nome
+                        </button>
                       </form>
 
                       <form action={deleteServiceCategoryAction} className="mt-2">
@@ -667,12 +768,6 @@ export default async function DashboardServicesPage({
                           Apagar categoria
                         </button>
                       </form>
-
-                      <p className={`mt-3 text-xs ${theme.muted}`}>
-                        {category._count.services} serviço
-                        {category._count.services === 1 ? "" : "s"} nesta
-                        categoria.
-                      </p>
                     </div>
                   ))}
                 </div>
@@ -774,8 +869,8 @@ export default async function DashboardServicesPage({
 
               <div className={`mt-6 rounded-3xl border p-5 ${theme.card}`}>
                 <p className={`text-sm ${theme.muted}`}>
-                  Apagar uma categoria não apaga os serviços. Eles voltam para
-                  Sem categoria.
+                  Use Subir e Descer para organizar como os serviços aparecem
+                  para o cliente na página pública.
                 </p>
               </div>
             </div>
@@ -791,6 +886,10 @@ export default async function DashboardServicesPage({
                 <h2 className={`mt-3 text-2xl font-bold ${theme.title}`}>
                   Serviços ativos
                 </h2>
+
+                <p className={`mt-2 text-sm ${theme.muted}`}>
+                  A ordem abaixo será usada na página pública.
+                </p>
               </div>
 
               {activeServices.length === 0 ? (

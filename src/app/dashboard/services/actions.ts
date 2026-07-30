@@ -48,6 +48,14 @@ function parseDuration(value: string) {
   return duration
 }
 
+function normalizeMoveDirection(direction: string) {
+  if (direction === "up" || direction === "down") {
+    return direction
+  }
+
+  redirectWithError("Direção inválida.")
+}
+
 async function getCurrentBusiness() {
   return prisma.business.findUnique({
     where: {
@@ -81,10 +89,106 @@ async function getValidCategoryId({
   return category.id
 }
 
+async function getNextServiceSortOrder({
+  businessId,
+  categoryId,
+}: {
+  businessId: string
+  categoryId: string | null
+}) {
+  const lastService = await prisma.service.findFirst({
+    where: {
+      businessId,
+      categoryId,
+    },
+    orderBy: [
+      {
+        sortOrder: "desc",
+      },
+      {
+        createdAt: "desc",
+      },
+    ],
+  })
+
+  return lastService ? lastService.sortOrder + 1 : 1
+}
+
 function validateCategoryName(name: string) {
   if (name.length < 2 || name.length > 60) {
     redirectWithError("O nome da categoria deve ter entre 2 e 60 caracteres.")
   }
+}
+
+async function normalizeCategoryOrder(businessId: string) {
+  const categories = await prisma.serviceCategory.findMany({
+    where: {
+      businessId,
+    },
+    orderBy: [
+      {
+        sortOrder: "asc",
+      },
+      {
+        createdAt: "asc",
+      },
+      {
+        name: "asc",
+      },
+    ],
+  })
+
+  await prisma.$transaction(
+    categories.map((category, index) =>
+      prisma.serviceCategory.update({
+        where: {
+          id: category.id,
+        },
+        data: {
+          sortOrder: index + 1,
+        },
+      }),
+    ),
+  )
+}
+
+async function normalizeServiceOrder({
+  businessId,
+  categoryId,
+}: {
+  businessId: string
+  categoryId: string | null
+}) {
+  const services = await prisma.service.findMany({
+    where: {
+      businessId,
+      categoryId,
+    },
+    orderBy: [
+      {
+        sortOrder: "asc",
+      },
+      {
+        createdAt: "asc",
+      },
+      {
+        name: "asc",
+      },
+    ],
+  })
+
+  await prisma.$transaction(
+    services.map((service, index) =>
+      prisma.service.update({
+        where: {
+          id: service.id,
+        },
+        data: {
+          sortOrder: index + 1,
+        },
+      }),
+    ),
+  )
 }
 
 export async function createServiceCategoryAction(formData: FormData) {
@@ -113,9 +217,14 @@ export async function createServiceCategoryAction(formData: FormData) {
     where: {
       businessId: business.id,
     },
-    orderBy: {
-      sortOrder: "desc",
-    },
+    orderBy: [
+      {
+        sortOrder: "desc",
+      },
+      {
+        createdAt: "desc",
+      },
+    ],
   })
 
   await prisma.serviceCategory.create({
@@ -188,6 +297,72 @@ export async function updateServiceCategoryAction(formData: FormData) {
   redirectWithSuccess("Categoria atualizada com sucesso.")
 }
 
+export async function moveServiceCategoryAction(formData: FormData) {
+  const categoryId = normalizeText(formData.get("categoryId"))
+  const direction = normalizeMoveDirection(normalizeText(formData.get("direction")))
+
+  if (!categoryId) {
+    redirectWithError("Categoria não encontrada.")
+  }
+
+  const business = await getCurrentBusiness()
+
+  if (!business) {
+    redirectWithError("Negócio não encontrado.")
+  }
+
+  await normalizeCategoryOrder(business.id)
+
+  const categories = await prisma.serviceCategory.findMany({
+    where: {
+      businessId: business.id,
+    },
+    orderBy: [
+      {
+        sortOrder: "asc",
+      },
+      {
+        createdAt: "asc",
+      },
+    ],
+  })
+
+  const currentIndex = categories.findIndex((category) => category.id === categoryId)
+
+  if (currentIndex === -1) {
+    redirectWithError("Categoria não encontrada neste negócio.")
+  }
+
+  const targetIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1
+
+  if (targetIndex < 0 || targetIndex >= categories.length) {
+    redirectWithSuccess("Categoria mantida na posição atual.")
+  }
+
+  const reorderedCategories = [...categories]
+  const [currentCategory] = reorderedCategories.splice(currentIndex, 1)
+
+  reorderedCategories.splice(targetIndex, 0, currentCategory)
+
+  await prisma.$transaction(
+    reorderedCategories.map((category, index) =>
+      prisma.serviceCategory.update({
+        where: {
+          id: category.id,
+        },
+        data: {
+          sortOrder: index + 1,
+        },
+      }),
+    ),
+  )
+
+  revalidatePath("/dashboard/services")
+  revalidatePath(`/book/${business.slug}`)
+
+  redirectWithSuccess("Ordem da categoria atualizada.")
+}
+
 export async function deleteServiceCategoryAction(formData: FormData) {
   const categoryId = normalizeText(formData.get("categoryId"))
 
@@ -235,6 +410,12 @@ export async function deleteServiceCategoryAction(formData: FormData) {
     },
   })
 
+  await normalizeCategoryOrder(business.id)
+  await normalizeServiceOrder({
+    businessId: business.id,
+    categoryId: null,
+  })
+
   revalidatePath("/dashboard/services")
   revalidatePath(`/book/${business.slug}`)
   revalidatePath("/dashboard")
@@ -280,6 +461,11 @@ export async function createServiceAction(formData: FormData) {
     categoryId: categoryIdRaw,
   })
 
+  const sortOrder = await getNextServiceSortOrder({
+    businessId: business.id,
+    categoryId,
+  })
+
   await prisma.service.create({
     data: {
       businessId: business.id,
@@ -289,6 +475,7 @@ export async function createServiceAction(formData: FormData) {
       priceCents,
       durationMin,
       active: true,
+      sortOrder,
     },
   })
 
@@ -349,6 +536,15 @@ export async function updateServiceAction(formData: FormData) {
     categoryId: categoryIdRaw,
   })
 
+  const categoryChanged = service.categoryId !== categoryId
+
+  const sortOrder = categoryChanged
+    ? await getNextServiceSortOrder({
+        businessId: business.id,
+        categoryId,
+      })
+    : service.sortOrder
+
   await prisma.service.update({
     where: {
       id: service.id,
@@ -359,14 +555,108 @@ export async function updateServiceAction(formData: FormData) {
       description: description || null,
       priceCents,
       durationMin,
+      sortOrder,
     },
   })
+
+  if (categoryChanged) {
+    await normalizeServiceOrder({
+      businessId: business.id,
+      categoryId: service.categoryId,
+    })
+
+    await normalizeServiceOrder({
+      businessId: business.id,
+      categoryId,
+    })
+  }
 
   revalidatePath("/dashboard/services")
   revalidatePath(`/book/${business.slug}`)
   revalidatePath("/dashboard")
 
   redirectWithSuccess("Serviço atualizado com sucesso.")
+}
+
+export async function moveServiceAction(formData: FormData) {
+  const serviceId = normalizeText(formData.get("serviceId"))
+  const direction = normalizeMoveDirection(normalizeText(formData.get("direction")))
+
+  if (!serviceId) {
+    redirectWithError("Serviço não encontrado.")
+  }
+
+  const business = await getCurrentBusiness()
+
+  if (!business) {
+    redirectWithError("Negócio não encontrado.")
+  }
+
+  const service = await prisma.service.findFirst({
+    where: {
+      id: serviceId,
+      businessId: business.id,
+    },
+  })
+
+  if (!service) {
+    redirectWithError("Serviço não encontrado neste negócio.")
+  }
+
+  await normalizeServiceOrder({
+    businessId: business.id,
+    categoryId: service.categoryId,
+  })
+
+  const services = await prisma.service.findMany({
+    where: {
+      businessId: business.id,
+      categoryId: service.categoryId,
+    },
+    orderBy: [
+      {
+        sortOrder: "asc",
+      },
+      {
+        createdAt: "asc",
+      },
+    ],
+  })
+
+  const currentIndex = services.findIndex((item) => item.id === service.id)
+
+  if (currentIndex === -1) {
+    redirectWithError("Serviço não encontrado neste grupo.")
+  }
+
+  const targetIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1
+
+  if (targetIndex < 0 || targetIndex >= services.length) {
+    redirectWithSuccess("Serviço mantido na posição atual.")
+  }
+
+  const reorderedServices = [...services]
+  const [currentService] = reorderedServices.splice(currentIndex, 1)
+
+  reorderedServices.splice(targetIndex, 0, currentService)
+
+  await prisma.$transaction(
+    reorderedServices.map((item, index) =>
+      prisma.service.update({
+        where: {
+          id: item.id,
+        },
+        data: {
+          sortOrder: index + 1,
+        },
+      }),
+    ),
+  )
+
+  revalidatePath("/dashboard/services")
+  revalidatePath(`/book/${business.slug}`)
+
+  redirectWithSuccess("Ordem do serviço atualizada.")
 }
 
 export async function toggleServiceActiveAction(formData: FormData) {
@@ -457,6 +747,11 @@ export async function deleteServiceAction(formData: FormData) {
     where: {
       id: service.id,
     },
+  })
+
+  await normalizeServiceOrder({
+    businessId: business.id,
+    categoryId: service.categoryId,
   })
 
   revalidatePath("/dashboard/services")

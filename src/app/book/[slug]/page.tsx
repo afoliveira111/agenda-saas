@@ -24,6 +24,7 @@ type PublicService = {
   priceCents: number
   durationMin: number
   categoryId: string | null
+  sortOrder: number
 }
 
 type PublicServiceGroup = {
@@ -231,6 +232,9 @@ export default async function BookingPage({
             sortOrder: "asc",
           },
           {
+            createdAt: "asc",
+          },
+          {
             name: "asc",
           },
         ],
@@ -241,7 +245,13 @@ export default async function BookingPage({
         },
         orderBy: [
           {
+            sortOrder: "asc",
+          },
+          {
             createdAt: "asc",
+          },
+          {
+            name: "asc",
           },
         ],
       },

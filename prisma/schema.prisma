@@ -94,6 +94,7 @@ model Service {
   priceCents  Int
   durationMin Int
   active      Boolean  @default(true)
+  sortOrder   Int      @default(0)
 
   bookingServices BookingService[]
 
@@ -101,6 +102,7 @@ model Service {
   updatedAt   DateTime @updatedAt
 
   @@index([businessId, categoryId])
+  @@index([businessId, categoryId, sortOrder])
 }
 
 model Customer {
