@@ -617,14 +617,10 @@ export default async function BookingPage({
                       <div className="flex flex-col gap-3 border-b border-current/10 px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                           <p
-                            className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.muted}`}
+                            className={`text-b font-semibold uppercase tracking-[0.3em] ${theme.muted}`}
                           >
-                            Categoria
-                          </p>
-
-                          <h3 className="mt-2 text-2xl font-bold">
                             {group.name}
-                          </h3>
+                          </p>
                         </div>
 
                         <span
