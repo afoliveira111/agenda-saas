@@ -1,5 +1,4 @@
 import { cookies } from "next/headers"
-import Link from "next/link"
 import {
   formatAdminTheme,
   getAdminThemeClasses,
@@ -44,6 +43,8 @@ function getFeedbackClasses(type: "error" | "success") {
 
   return "border-emerald-300 bg-emerald-50 text-emerald-800"
 }
+
+export const dynamic = "force-dynamic"
 
 export default async function AdminPage({ searchParams }: AdminPageProps) {
   const { error, success } = await searchParams
@@ -139,32 +140,33 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row">
-              <Link
+              <a
                 href="/admin/users"
                 className={`rounded-2xl border px-5 py-3 text-center font-semibold transition ${theme.primaryButton}`}
               >
                 Utilizadores
-              </Link>
+              </a>
 
-              <Link
+              <a
                 href="/dashboard"
                 className={`rounded-2xl border px-5 py-3 text-center font-semibold transition ${theme.secondaryButton}`}
               >
                 Abrir painel
-              </Link>
+              </a>
 
-              <Link
+              <a
                 href="/logout"
                 className={`rounded-2xl border px-5 py-3 text-center font-semibold transition ${theme.secondaryButton}`}
               >
                 Sair
-              </Link>
+              </a>
             </div>
           </div>
 
           <div className="mt-8 grid gap-4 md:grid-cols-4">
             <div className={`rounded-3xl border p-5 ${theme.card}`}>
               <p className={`text-sm ${theme.muted}`}>Negócios</p>
+
               <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
                 {businesses.length}
               </p>
@@ -172,6 +174,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
 
             <div className={`rounded-3xl border p-5 ${theme.card}`}>
               <p className={`text-sm ${theme.muted}`}>Utilizadores</p>
+
               <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
                 {userCount}
               </p>
@@ -179,6 +182,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
 
             <div className={`rounded-3xl border p-5 ${theme.card}`}>
               <p className={`text-sm ${theme.muted}`}>Admins</p>
+
               <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
                 {adminCount}
               </p>
@@ -186,6 +190,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
 
             <div className={`rounded-3xl border p-5 ${theme.card}`}>
               <p className={`text-sm ${theme.muted}`}>Donas</p>
+
               <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
                 {ownerCount}
               </p>
@@ -222,42 +227,42 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
               </p>
 
               <div className="mt-5 grid gap-3">
-                <Link
+                <a
                   href="/admin/users"
                   className={`rounded-2xl border px-5 py-4 text-center font-semibold transition ${theme.primaryButton}`}
                 >
                   Gerir utilizadores
-                </Link>
+                </a>
 
-                <Link
+                <a
                   href="/dashboard/businesses"
                   className={`rounded-2xl border px-5 py-4 text-center font-semibold transition ${theme.secondaryButton}`}
                 >
                   Gerir negócios
-                </Link>
+                </a>
 
-                <Link
+                <a
                   href="/dashboard/tools"
                   className={`rounded-2xl border px-5 py-4 text-center font-semibold transition ${theme.secondaryButton}`}
                 >
                   Ferramentas
-                </Link>
+                </a>
 
                 {selectedBusiness && (
                   <>
-                    <Link
+                    <a
                       href="/dashboard"
                       className={`rounded-2xl border px-5 py-4 text-center font-semibold transition ${theme.secondaryButton}`}
                     >
                       Painel do negócio atual
-                    </Link>
+                    </a>
 
-                    <Link
+                    <a
                       href={`/book/${selectedBusiness.slug}`}
                       className={`rounded-2xl border px-5 py-4 text-center font-semibold transition ${theme.secondaryButton}`}
                     >
                       Página pública atual
-                    </Link>
+                    </a>
                   </>
                 )}
               </div>
@@ -277,6 +282,8 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
               </p>
 
               <form action={updateAdminThemeAction} className="mt-5">
+                <input type="hidden" name="redirectTo" value="/admin" />
+
                 <AdminThemeSelector currentTheme={currentAdminTheme} />
 
                 <button
@@ -300,6 +307,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
               <div className="mt-5 grid gap-3">
                 <div className={`rounded-2xl border p-4 ${theme.card}`}>
                   <p className={`text-sm ${theme.muted}`}>Marcações</p>
+
                   <p className={`mt-1 text-2xl font-bold ${theme.title}`}>
                     {bookingCount}
                   </p>
@@ -307,6 +315,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
 
                 <div className={`rounded-2xl border p-4 ${theme.card}`}>
                   <p className={`text-sm ${theme.muted}`}>Clientes</p>
+
                   <p className={`mt-1 text-2xl font-bold ${theme.title}`}>
                     {customerCount}
                   </p>
@@ -314,6 +323,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
 
                 <div className={`rounded-2xl border p-4 ${theme.card}`}>
                   <p className={`text-sm ${theme.muted}`}>Serviços</p>
+
                   <p className={`mt-1 text-2xl font-bold ${theme.title}`}>
                     {serviceCount}
                   </p>
@@ -382,7 +392,9 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                             {business.name}
                           </h3>
 
-                          <div className={`mt-3 grid gap-2 text-sm sm:grid-cols-3 ${theme.muted}`}>
+                          <div
+                            className={`mt-3 grid gap-2 text-sm sm:grid-cols-3 ${theme.muted}`}
+                          >
                             <p>
                               Marcações:{" "}
                               <span className={`font-semibold ${theme.title}`}>
@@ -426,12 +438,12 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                             </button>
                           </form>
 
-                          <Link
+                          <a
                             href={`/book/${business.slug}`}
                             className={`w-full rounded-2xl border px-4 py-3 text-center text-sm font-semibold transition ${theme.secondaryButton}`}
                           >
                             Página pública
-                          </Link>
+                          </a>
                         </div>
                       </div>
 

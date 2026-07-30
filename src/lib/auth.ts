@@ -36,6 +36,57 @@ export function verifyPassword(password: string, storedHash: string) {
   return timingSafeEqual(candidateHash, storedBuffer)
 }
 
+function getSafeNextUrl(nextUrl: string) {
+  if (!nextUrl) {
+    return ""
+  }
+
+  if (!nextUrl.startsWith("/")) {
+    return ""
+  }
+
+  if (nextUrl.startsWith("//")) {
+    return ""
+  }
+
+  if (nextUrl.startsWith("/login")) {
+    return ""
+  }
+
+  return nextUrl
+}
+
+function getRoleHome(role: string) {
+  if (role === "ADMIN") {
+    return "/admin"
+  }
+
+  return "/dashboard"
+}
+
+function canAccessPath(role: string, path: string) {
+  if (!path) {
+    return false
+  }
+
+  if (path.startsWith("/admin")) {
+    return role === "ADMIN"
+  }
+
+  if (
+    path.startsWith("/dashboard/tools") ||
+    path.startsWith("/dashboard/businesses")
+  ) {
+    return role === "ADMIN"
+  }
+
+  if (path.startsWith("/dashboard")) {
+    return role === "ADMIN" || role === "OWNER"
+  }
+
+  return true
+}
+
 export async function createUserSession(userId: string) {
   const token = randomBytes(32).toString("hex")
   const tokenHash = hashToken(token)
@@ -149,18 +200,23 @@ export async function getCurrentSession() {
   return session
 }
 
-export async function requireSession() {
+export async function requireSession(nextUrl = "/dashboard") {
   const session = await getCurrentSession()
 
   if (!session) {
-    redirect("/login")
+    const safeNextUrl = getSafeNextUrl(nextUrl)
+    const loginUrl = safeNextUrl
+      ? `/login?next=${encodeURIComponent(safeNextUrl)}`
+      : "/login"
+
+    redirect(loginUrl)
   }
 
   return session
 }
 
-export async function requireAdminSession() {
-  const session = await requireSession()
+export async function requireAdminSession(nextUrl = "/admin") {
+  const session = await requireSession(nextUrl)
 
   if (session.user.role !== "ADMIN") {
     redirect("/dashboard")
@@ -169,16 +225,18 @@ export async function requireAdminSession() {
   return session
 }
 
-export async function getSessionRedirectPath() {
+export async function getSessionRedirectPath(nextUrl = "") {
   const session = await getCurrentSession()
 
   if (!session) {
     return null
   }
 
-  if (session.user.role === "ADMIN") {
-    return "/admin"
+  const safeNextUrl = getSafeNextUrl(nextUrl)
+
+  if (safeNextUrl && canAccessPath(session.user.role, safeNextUrl)) {
+    return safeNextUrl
   }
 
-  return "/dashboard"
+  return getRoleHome(session.user.role)
 }

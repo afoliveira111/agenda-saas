@@ -9,8 +9,10 @@ type AdminLayoutProps = {
 
 const ADMIN_THEME_COOKIE = "agenda_saas_admin_theme"
 
+export const dynamic = "force-dynamic"
+
 export default async function AdminLayout({ children }: AdminLayoutProps) {
-  await requireAdminSession()
+  await requireAdminSession("/admin")
 
   const cookieStore = await cookies()
   const currentAdminTheme = normalizeAdminTheme(

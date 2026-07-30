@@ -27,13 +27,14 @@ function getErrorMessage(error?: string) {
 }
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
-  const sessionRedirectPath = await getSessionRedirectPath()
+  const { error, next } = await searchParams
+
+  const sessionRedirectPath = await getSessionRedirectPath(next || "")
 
   if (sessionRedirectPath) {
     redirect(sessionRedirectPath)
   }
 
-  const { error, next } = await searchParams
   const errorMessage = getErrorMessage(error)
 
   return (
@@ -74,6 +75,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
             <form action={loginAction} className="mt-6 grid gap-4">
               <input type="hidden" name="next" value={next || ""} />
+
               <div>
                 <label className="text-sm font-medium text-zinc-300">
                   E-mail

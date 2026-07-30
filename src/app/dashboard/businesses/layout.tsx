@@ -9,10 +9,12 @@ type DashboardBusinessesLayoutProps = {
 
 const ADMIN_THEME_COOKIE = "agenda_saas_admin_theme"
 
+export const dynamic = "force-dynamic"
+
 export default async function DashboardBusinessesLayout({
   children,
 }: DashboardBusinessesLayoutProps) {
-  await requireAdminSession()
+  await requireAdminSession("/dashboard/businesses")
 
   const cookieStore = await cookies()
   const currentAdminTheme = normalizeAdminTheme(
