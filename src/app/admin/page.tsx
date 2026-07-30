@@ -166,7 +166,6 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
           <div className="mt-8 grid gap-4 md:grid-cols-4">
             <div className={`rounded-3xl border p-5 ${theme.card}`}>
               <p className={`text-sm ${theme.muted}`}>Negócios</p>
-
               <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
                 {businesses.length}
               </p>
@@ -174,7 +173,6 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
 
             <div className={`rounded-3xl border p-5 ${theme.card}`}>
               <p className={`text-sm ${theme.muted}`}>Utilizadores</p>
-
               <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
                 {userCount}
               </p>
@@ -182,7 +180,6 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
 
             <div className={`rounded-3xl border p-5 ${theme.card}`}>
               <p className={`text-sm ${theme.muted}`}>Admins</p>
-
               <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
                 {adminCount}
               </p>
@@ -190,7 +187,6 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
 
             <div className={`rounded-3xl border p-5 ${theme.card}`}>
               <p className={`text-sm ${theme.muted}`}>Donas</p>
-
               <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
                 {ownerCount}
               </p>
@@ -270,33 +266,6 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
 
             <div className={`rounded-[2rem] border p-6 shadow-2xl ${theme.panel}`}>
               <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
-                Tema do admin
-              </p>
-
-              <h2 className={`mt-3 text-2xl font-bold ${theme.title}`}>
-                Aparência desta página
-              </h2>
-
-              <p className={`mt-3 text-sm ${theme.muted}`}>
-                Escolha a cor da área administrativa.
-              </p>
-
-              <form action={updateAdminThemeAction} className="mt-5">
-                <input type="hidden" name="redirectTo" value="/admin" />
-
-                <AdminThemeSelector currentTheme={currentAdminTheme} />
-
-                <button
-                  type="submit"
-                  className={`mt-5 w-full rounded-2xl border px-5 py-4 font-semibold transition ${theme.primaryButton}`}
-                >
-                  Guardar tema do admin
-                </button>
-              </form>
-            </div>
-
-            <div className={`rounded-[2rem] border p-6 shadow-2xl ${theme.panel}`}>
-              <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
                 Resumo geral
               </p>
 
@@ -307,7 +276,6 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
               <div className="mt-5 grid gap-3">
                 <div className={`rounded-2xl border p-4 ${theme.card}`}>
                   <p className={`text-sm ${theme.muted}`}>Marcações</p>
-
                   <p className={`mt-1 text-2xl font-bold ${theme.title}`}>
                     {bookingCount}
                   </p>
@@ -315,7 +283,6 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
 
                 <div className={`rounded-2xl border p-4 ${theme.card}`}>
                   <p className={`text-sm ${theme.muted}`}>Clientes</p>
-
                   <p className={`mt-1 text-2xl font-bold ${theme.title}`}>
                     {customerCount}
                   </p>
@@ -323,7 +290,6 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
 
                 <div className={`rounded-2xl border p-4 ${theme.card}`}>
                   <p className={`text-sm ${theme.muted}`}>Serviços</p>
-
                   <p className={`mt-1 text-2xl font-bold ${theme.title}`}>
                     {serviceCount}
                   </p>
