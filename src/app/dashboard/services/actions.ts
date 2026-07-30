@@ -2,9 +2,9 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
-import { prisma } from "@/lib/prisma"
 import { getCurrentBusinessSlug } from "@/lib/current-business"
 import { durationOptions } from "@/lib/format-duration"
+import { prisma } from "@/lib/prisma"
 
 function redirectWithError(message: string): never {
   redirect(`/dashboard/services?error=${encodeURIComponent(message)}`)
@@ -56,11 +56,202 @@ async function getCurrentBusiness() {
   })
 }
 
+async function getValidCategoryId({
+  businessId,
+  categoryId,
+}: {
+  businessId: string
+  categoryId: string
+}) {
+  if (!categoryId) {
+    return null
+  }
+
+  const category = await prisma.serviceCategory.findFirst({
+    where: {
+      id: categoryId,
+      businessId,
+    },
+  })
+
+  if (!category) {
+    redirectWithError("Categoria não encontrada neste negócio.")
+  }
+
+  return category.id
+}
+
+function validateCategoryName(name: string) {
+  if (name.length < 2 || name.length > 60) {
+    redirectWithError("O nome da categoria deve ter entre 2 e 60 caracteres.")
+  }
+}
+
+export async function createServiceCategoryAction(formData: FormData) {
+  const name = normalizeText(formData.get("name"))
+
+  validateCategoryName(name)
+
+  const business = await getCurrentBusiness()
+
+  if (!business) {
+    redirectWithError("Negócio não encontrado.")
+  }
+
+  const existingCategory = await prisma.serviceCategory.findFirst({
+    where: {
+      businessId: business.id,
+      name,
+    },
+  })
+
+  if (existingCategory) {
+    redirectWithError("Já existe uma categoria com este nome.")
+  }
+
+  const lastCategory = await prisma.serviceCategory.findFirst({
+    where: {
+      businessId: business.id,
+    },
+    orderBy: {
+      sortOrder: "desc",
+    },
+  })
+
+  await prisma.serviceCategory.create({
+    data: {
+      businessId: business.id,
+      name,
+      sortOrder: lastCategory ? lastCategory.sortOrder + 1 : 1,
+    },
+  })
+
+  revalidatePath("/dashboard/services")
+  revalidatePath(`/book/${business.slug}`)
+
+  redirectWithSuccess("Categoria criada com sucesso.")
+}
+
+export async function updateServiceCategoryAction(formData: FormData) {
+  const categoryId = normalizeText(formData.get("categoryId"))
+  const name = normalizeText(formData.get("name"))
+
+  if (!categoryId) {
+    redirectWithError("Categoria não encontrada.")
+  }
+
+  validateCategoryName(name)
+
+  const business = await getCurrentBusiness()
+
+  if (!business) {
+    redirectWithError("Negócio não encontrado.")
+  }
+
+  const category = await prisma.serviceCategory.findFirst({
+    where: {
+      id: categoryId,
+      businessId: business.id,
+    },
+  })
+
+  if (!category) {
+    redirectWithError("Categoria não encontrada neste negócio.")
+  }
+
+  const existingCategory = await prisma.serviceCategory.findFirst({
+    where: {
+      businessId: business.id,
+      name,
+      NOT: {
+        id: category.id,
+      },
+    },
+  })
+
+  if (existingCategory) {
+    redirectWithError("Já existe outra categoria com este nome.")
+  }
+
+  await prisma.serviceCategory.update({
+    where: {
+      id: category.id,
+    },
+    data: {
+      name,
+    },
+  })
+
+  revalidatePath("/dashboard/services")
+  revalidatePath(`/book/${business.slug}`)
+
+  redirectWithSuccess("Categoria atualizada com sucesso.")
+}
+
+export async function deleteServiceCategoryAction(formData: FormData) {
+  const categoryId = normalizeText(formData.get("categoryId"))
+
+  if (!categoryId) {
+    redirectWithError("Categoria não encontrada.")
+  }
+
+  const business = await getCurrentBusiness()
+
+  if (!business) {
+    redirectWithError("Negócio não encontrado.")
+  }
+
+  const category = await prisma.serviceCategory.findFirst({
+    where: {
+      id: categoryId,
+      businessId: business.id,
+    },
+    include: {
+      _count: {
+        select: {
+          services: true,
+        },
+      },
+    },
+  })
+
+  if (!category) {
+    redirectWithError("Categoria não encontrada neste negócio.")
+  }
+
+  await prisma.service.updateMany({
+    where: {
+      businessId: business.id,
+      categoryId: category.id,
+    },
+    data: {
+      categoryId: null,
+    },
+  })
+
+  await prisma.serviceCategory.delete({
+    where: {
+      id: category.id,
+    },
+  })
+
+  revalidatePath("/dashboard/services")
+  revalidatePath(`/book/${business.slug}`)
+  revalidatePath("/dashboard")
+
+  redirectWithSuccess(
+    category._count.services > 0
+      ? "Categoria apagada. Os serviços foram movidos para Sem categoria."
+      : "Categoria apagada com sucesso.",
+  )
+}
+
 export async function createServiceAction(formData: FormData) {
   const name = normalizeText(formData.get("name"))
   const description = normalizeText(formData.get("description"))
   const priceRaw = normalizeText(formData.get("price"))
   const durationRaw = normalizeText(formData.get("durationMin"))
+  const categoryIdRaw = normalizeText(formData.get("categoryId"))
 
   if (name.length < 2 || name.length > 80) {
     redirectWithError("O nome do serviço deve ter entre 2 e 80 caracteres.")
@@ -84,9 +275,15 @@ export async function createServiceAction(formData: FormData) {
     redirectWithError("Negócio não encontrado. Selecione outro negócio.")
   }
 
+  const categoryId = await getValidCategoryId({
+    businessId: business.id,
+    categoryId: categoryIdRaw,
+  })
+
   await prisma.service.create({
     data: {
       businessId: business.id,
+      categoryId,
       name,
       description: description || null,
       priceCents,
@@ -108,6 +305,7 @@ export async function updateServiceAction(formData: FormData) {
   const description = normalizeText(formData.get("description"))
   const priceRaw = normalizeText(formData.get("price"))
   const durationRaw = normalizeText(formData.get("durationMin"))
+  const categoryIdRaw = normalizeText(formData.get("categoryId"))
 
   if (!serviceId) {
     redirectWithError("Serviço não encontrado.")
@@ -146,11 +344,17 @@ export async function updateServiceAction(formData: FormData) {
     redirectWithError("Serviço não encontrado neste negócio.")
   }
 
+  const categoryId = await getValidCategoryId({
+    businessId: business.id,
+    categoryId: categoryIdRaw,
+  })
+
   await prisma.service.update({
     where: {
       id: service.id,
     },
     data: {
+      categoryId,
       name,
       description: description || null,
       priceCents,
@@ -206,7 +410,9 @@ export async function toggleServiceActiveAction(formData: FormData) {
   revalidatePath("/dashboard")
 
   redirectWithSuccess(
-    nextActive ? "Serviço ativado com sucesso." : "Serviço desativado com sucesso.",
+    nextActive
+      ? "Serviço ativado com sucesso."
+      : "Serviço desativado com sucesso.",
   )
 }
 

@@ -17,6 +17,21 @@ type BookingPageProps = {
   }>
 }
 
+type PublicService = {
+  id: string
+  name: string
+  description: string | null
+  priceCents: number
+  durationMin: number
+  categoryId: string | null
+}
+
+type PublicServiceGroup = {
+  id: string
+  name: string
+  services: PublicService[]
+}
+
 function formatPrice(priceCents: number) {
   return new Intl.NumberFormat("pt-PT", {
     style: "currency",
@@ -166,6 +181,34 @@ function getBusinessLogo({
   return null
 }
 
+function buildPublicServiceGroups({
+  categories,
+  services,
+}: {
+  categories: Array<{ id: string; name: string }>
+  services: PublicService[]
+}) {
+  const groups: PublicServiceGroup[] = categories
+    .map((category) => ({
+      id: category.id,
+      name: category.name,
+      services: services.filter((service) => service.categoryId === category.id),
+    }))
+    .filter((group) => group.services.length > 0)
+
+  const uncategorizedServices = services.filter((service) => !service.categoryId)
+
+  if (uncategorizedServices.length > 0) {
+    groups.push({
+      id: "uncategorized",
+      name: categories.length > 0 ? "Outros serviços" : "Serviços",
+      services: uncategorizedServices,
+    })
+  }
+
+  return groups
+}
+
 export default async function BookingPage({
   params,
   searchParams,
@@ -182,13 +225,25 @@ export default async function BookingPage({
       slug,
     },
     include: {
+      serviceCategories: {
+        orderBy: [
+          {
+            sortOrder: "asc",
+          },
+          {
+            name: "asc",
+          },
+        ],
+      },
       services: {
         where: {
           active: true,
         },
-        orderBy: {
-          createdAt: "asc",
-        },
+        orderBy: [
+          {
+            createdAt: "asc",
+          },
+        ],
       },
       workHours: {
         where: {
@@ -218,6 +273,11 @@ export default async function BookingPage({
     (total, service) => total + service.durationMin,
     0,
   )
+
+  const publicServiceGroups = buildPublicServiceGroups({
+    categories: business.serviceCategories,
+    services: business.services,
+  })
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
@@ -517,7 +577,7 @@ export default async function BookingPage({
                   </h2>
 
                   <p className={`mt-2 ${theme.muted}`}>
-                    Pode escolher um ou mais serviços para a mesma marcação.
+                    Os serviços estão organizados por categoria.
                   </p>
                 </div>
 
@@ -531,63 +591,101 @@ export default async function BookingPage({
                 )}
               </div>
 
-              <div className="mt-6 grid gap-4">
-                {business.services.map((service) => {
-                  const isSelected = selectedServiceIds.includes(service.id)
-
-                  const nextSelectedServiceIds = toggleServiceId(
-                    selectedServiceIds,
-                    service.id,
-                  )
-
-                  return (
-                    <Link
-                      key={service.id}
-                      scroll={false}
-                      href={buildBookingUrl({
-                        slug: business.slug,
-                        serviceIds: nextSelectedServiceIds,
-                        date,
-                      })}
-                      className={`group block rounded-3xl border p-5 transition ${
-                        isSelected
-                          ? `${theme.primaryButton} shadow-xl`
-                          : `${theme.card} hover:scale-[1.01]`
-                      }`}
+              {publicServiceGroups.length === 0 ? (
+                <div className={`mt-6 rounded-3xl border p-8 ${theme.card}`}>
+                  <p className={theme.muted}>
+                    Ainda não existem serviços disponíveis para marcação.
+                  </p>
+                </div>
+              ) : (
+                <div className="mt-6 grid gap-5">
+                  {publicServiceGroups.map((group) => (
+                    <section
+                      key={group.id}
+                      className={`overflow-hidden rounded-[2rem] border ${theme.card}`}
                     >
-                      <div className="flex items-start justify-between gap-4">
+                      <div className="flex flex-col gap-3 border-b border-current/10 px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                          <div className="flex items-center gap-3">
-                            <div className="flex h-7 w-7 items-center justify-center rounded-full border border-current text-sm font-bold">
-                              {isSelected ? "✓" : ""}
-                            </div>
-
-                            <h3 className="text-lg font-semibold">
-                              {service.name}
-                            </h3>
-                          </div>
-
-                          {service.description && (
-                            <p className="mt-3 text-sm opacity-75">
-                              {service.description}
-                            </p>
-                          )}
-
-                          <p className="mt-3 text-sm opacity-70">
-                            Duração: {formatDuration(service.durationMin)}
+                          <p
+                            className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.muted}`}
+                          >
+                            Categoria
                           </p>
+
+                          <h3 className="mt-2 text-2xl font-bold">
+                            {group.name}
+                          </h3>
                         </div>
 
-                        <div className="text-right">
-                          <p className="text-lg font-bold">
-                            {formatPrice(service.priceCents)}
-                          </p>
-                        </div>
+                        <span
+                          className={`w-fit rounded-full border px-3 py-1 text-xs font-semibold ${theme.badge}`}
+                        >
+                          {group.services.length} serviço
+                          {group.services.length > 1 ? "s" : ""}
+                        </span>
                       </div>
-                    </Link>
-                  )
-                })}
-              </div>
+
+                      <div className="divide-y divide-current/10">
+                        {group.services.map((service) => {
+                          const isSelected = selectedServiceIds.includes(
+                            service.id,
+                          )
+
+                          const nextSelectedServiceIds = toggleServiceId(
+                            selectedServiceIds,
+                            service.id,
+                          )
+
+                          return (
+                            <Link
+                              key={service.id}
+                              scroll={false}
+                              href={buildBookingUrl({
+                                slug: business.slug,
+                                serviceIds: nextSelectedServiceIds,
+                                date,
+                              })}
+                              className={`block px-5 py-5 transition ${
+                                isSelected
+                                  ? `${theme.primaryButton}`
+                                  : "hover:bg-current/5"
+                              }`}
+                            >
+                              <div className="flex items-start justify-between gap-4">
+                                <div className="flex gap-3">
+                                  <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-current text-xs font-bold">
+                                    {isSelected ? "✓" : ""}
+                                  </div>
+
+                                  <div>
+                                    <h4 className="text-lg font-bold">
+                                      {service.name}
+                                    </h4>
+
+                                    {service.description && (
+                                      <p className="mt-2 text-sm leading-6 opacity-75">
+                                        {service.description}
+                                      </p>
+                                    )}
+
+                                    <p className="mt-2 text-sm opacity-70">
+                                      {formatDuration(service.durationMin)}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <p className="shrink-0 text-right text-lg font-bold">
+                                  {formatPrice(service.priceCents)}
+                                </p>
+                              </div>
+                            </Link>
+                          )
+                        })}
+                      </div>
+                    </section>
+                  ))}
+                </div>
+              )}
             </div>
 
             {selectedServices.length > 0 && (

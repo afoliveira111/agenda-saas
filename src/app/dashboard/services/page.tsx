@@ -7,9 +7,12 @@ import { durationOptions, formatDuration } from "@/lib/format-duration"
 import { prisma } from "@/lib/prisma"
 import {
   createServiceAction,
+  createServiceCategoryAction,
   deleteServiceAction,
+  deleteServiceCategoryAction,
   toggleServiceActiveAction,
   updateServiceAction,
+  updateServiceCategoryAction,
 } from "./actions"
 
 type ServicesPageProps = {
@@ -20,6 +23,28 @@ type ServicesPageProps = {
 }
 
 type DashboardTheme = ReturnType<typeof getDashboardThemeClasses>
+
+type ServiceCategoryOption = {
+  id: string
+  name: string
+}
+
+type ServiceCardService = {
+  id: string
+  name: string
+  description: string | null
+  priceCents: number
+  durationMin: number
+  active: boolean
+  categoryId: string | null
+  category: {
+    id: string
+    name: string
+  } | null
+  _count: {
+    bookingServices: number
+  }
+}
 
 function formatPrice(priceCents: number) {
   return new Intl.NumberFormat("pt-PT", {
@@ -118,18 +143,33 @@ function DurationSelect({
   )
 }
 
+type CategorySelectProps = {
+  categories: ServiceCategoryOption[]
+  defaultValue?: string | null
+  className: string
+}
+
+function CategorySelect({
+  categories,
+  defaultValue = "",
+  className,
+}: CategorySelectProps) {
+  return (
+    <select name="categoryId" defaultValue={defaultValue ?? ""} className={className}>
+      <option value="">Sem categoria</option>
+
+      {categories.map((category) => (
+        <option key={category.id} value={category.id}>
+          {category.name}
+        </option>
+      ))}
+    </select>
+  )
+}
+
 type ServiceCardProps = {
-  service: {
-    id: string
-    name: string
-    description: string | null
-    priceCents: number
-    durationMin: number
-    active: boolean
-    _count: {
-      bookingServices: number
-    }
-  }
+  service: ServiceCardService
+  categories: ServiceCategoryOption[]
   theme: DashboardTheme
   compactInputClasses: string
   compactSelectClasses: string
@@ -137,6 +177,7 @@ type ServiceCardProps = {
 
 function ServiceCard({
   service,
+  categories,
   theme,
   compactInputClasses,
   compactSelectClasses,
@@ -158,6 +199,10 @@ function ServiceCard({
               )}`}
             >
               {service.active ? "Ativo" : "Desativado"}
+            </span>
+
+            <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${theme.badge}`}>
+              {service.category?.name || "Sem categoria"}
             </span>
 
             <span className={`text-sm ${theme.muted}`}>
@@ -239,33 +284,45 @@ function ServiceCard({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className={`text-sm font-medium ${theme.title}`}>
-                Preço
-              </label>
+          <div>
+            <label className={`text-sm font-medium ${theme.title}`}>
+              Categoria
+            </label>
 
-              <input
-                type="number"
-                name="price"
-                required
-                min="0"
-                step="0.01"
-                defaultValue={formatPriceInput(service.priceCents)}
-                className={compactInputClasses}
-              />
-            </div>
+            <CategorySelect
+              categories={categories}
+              defaultValue={service.categoryId}
+              className={`mt-2 w-full ${compactSelectClasses}`}
+            />
+          </div>
+        </div>
 
-            <div>
-              <label className={`text-sm font-medium ${theme.title}`}>
-                Duração
-              </label>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label className={`text-sm font-medium ${theme.title}`}>
+              Preço
+            </label>
 
-              <DurationSelect
-                defaultValue={service.durationMin}
-                className={`mt-2 w-full ${compactSelectClasses}`}
-              />
-            </div>
+            <input
+              type="number"
+              name="price"
+              required
+              min="0"
+              step="0.01"
+              defaultValue={formatPriceInput(service.priceCents)}
+              className={compactInputClasses}
+            />
+          </div>
+
+          <div>
+            <label className={`text-sm font-medium ${theme.title}`}>
+              Duração
+            </label>
+
+            <DurationSelect
+              defaultValue={service.durationMin}
+              className={`mt-2 w-full ${compactSelectClasses}`}
+            />
           </div>
         </div>
 
@@ -294,6 +351,55 @@ function ServiceCard({
   )
 }
 
+type ServiceGroupProps = {
+  title: string
+  services: ServiceCardService[]
+  categories: ServiceCategoryOption[]
+  theme: DashboardTheme
+  compactInputClasses: string
+  compactSelectClasses: string
+}
+
+function ServiceGroup({
+  title,
+  services,
+  categories,
+  theme,
+  compactInputClasses,
+  compactSelectClasses,
+}: ServiceGroupProps) {
+  if (services.length === 0) {
+    return null
+  }
+
+  return (
+    <div className="grid gap-4">
+      <div className={`rounded-2xl border px-5 py-4 ${theme.cardStrong}`}>
+        <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
+          Categoria
+        </p>
+
+        <h3 className={`mt-2 text-xl font-bold ${theme.title}`}>{title}</h3>
+
+        <p className={`mt-1 text-sm ${theme.muted}`}>
+          {services.length} serviço{services.length > 1 ? "s" : ""}
+        </p>
+      </div>
+
+      {services.map((service) => (
+        <ServiceCard
+          key={service.id}
+          service={service}
+          categories={categories}
+          theme={theme}
+          compactInputClasses={compactInputClasses}
+          compactSelectClasses={compactSelectClasses}
+        />
+      ))}
+    </div>
+  )
+}
+
 export default async function DashboardServicesPage({
   searchParams,
 }: ServicesPageProps) {
@@ -304,6 +410,23 @@ export default async function DashboardServicesPage({
       slug: await getCurrentBusinessSlug(),
     },
     include: {
+      serviceCategories: {
+        orderBy: [
+          {
+            sortOrder: "asc",
+          },
+          {
+            name: "asc",
+          },
+        ],
+        include: {
+          _count: {
+            select: {
+              services: true,
+            },
+          },
+        },
+      },
       services: {
         orderBy: [
           {
@@ -314,6 +437,7 @@ export default async function DashboardServicesPage({
           },
         ],
         include: {
+          category: true,
           _count: {
             select: {
               bookingServices: true,
@@ -335,10 +459,23 @@ export default async function DashboardServicesPage({
   const selectClasses = getSelectClasses(currentTheme)
   const compactSelectClasses = getCompactSelectClasses(currentTheme)
 
+  const categories = business.serviceCategories.map((category) => ({
+    id: category.id,
+    name: category.name,
+  }))
+
   const activeServices = business.services.filter((service) => service.active)
   const inactiveServices = business.services.filter((service) => !service.active)
   const removableServices = business.services.filter(
     (service) => service._count.bookingServices === 0,
+  )
+
+  const uncategorizedActiveServices = activeServices.filter(
+    (service) => !service.categoryId,
+  )
+
+  const uncategorizedInactiveServices = inactiveServices.filter(
+    (service) => !service.categoryId,
   )
 
   return (
@@ -358,8 +495,8 @@ export default async function DashboardServicesPage({
               </h1>
 
               <p className={`mt-4 max-w-2xl ${theme.muted}`}>
-                Adicione, edite, desative ou apague serviços que ainda não foram
-                usados em marcações.
+                Organize os serviços por categoria, edite valores, durações e
+                controle o que aparece na página pública.
               </p>
             </div>
 
@@ -380,7 +517,15 @@ export default async function DashboardServicesPage({
             </div>
           </div>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-4">
+          <div className="mt-8 grid gap-4 md:grid-cols-5">
+            <div className={`rounded-3xl border p-5 ${theme.card}`}>
+              <p className={`text-sm ${theme.muted}`}>Categorias</p>
+
+              <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
+                {business.serviceCategories.length}
+              </p>
+            </div>
+
             <div className={`rounded-3xl border p-5 ${theme.card}`}>
               <p className={`text-sm ${theme.muted}`}>Total de serviços</p>
 
@@ -427,93 +572,212 @@ export default async function DashboardServicesPage({
           </div>
         )}
 
-        <div className="mt-8 grid gap-8 lg:grid-cols-[420px_1fr]">
-          <div className={`rounded-[2rem] border p-6 shadow-2xl ${theme.panel}`}>
-            <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
-              Novo serviço
-            </p>
+        <div className="mt-8 grid gap-8 lg:grid-cols-[430px_1fr]">
+          <div className="grid gap-8">
+            <div className={`rounded-[2rem] border p-6 shadow-2xl ${theme.panel}`}>
+              <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
+                Nova categoria
+              </p>
 
-            <h2 className={`mt-3 text-2xl font-bold ${theme.title}`}>
-              Adicionar serviço
-            </h2>
+              <h2 className={`mt-3 text-2xl font-bold ${theme.title}`}>
+                Criar categoria
+              </h2>
 
-            <p className={`mt-3 text-sm ${theme.muted}`}>
-              Este serviço ficará imediatamente disponível na página pública.
-            </p>
+              <p className={`mt-3 text-sm ${theme.muted}`}>
+                Exemplo: Unhas, Pestanas, Cabelo, Maquiagem.
+              </p>
 
-            <form action={createServiceAction} className="mt-6 grid gap-4">
-              <div>
-                <label className={`text-sm font-medium ${theme.title}`}>
-                  Nome do serviço
-                </label>
-
-                <input
-                  type="text"
-                  name="name"
-                  required
-                  minLength={2}
-                  maxLength={80}
-                  placeholder="Ex: Manicure Verniz Gel"
-                  className={inputClasses}
-                />
-              </div>
-
-              <div>
-                <label className={`text-sm font-medium ${theme.title}`}>
-                  Descrição
-                </label>
-
-                <textarea
-                  name="description"
-                  rows={4}
-                  maxLength={240}
-                  placeholder="Pequena descrição do serviço"
-                  className={`${inputClasses} resize-none`}
-                />
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-2">
+              <form action={createServiceCategoryAction} className="mt-6 grid gap-4">
                 <div>
                   <label className={`text-sm font-medium ${theme.title}`}>
-                    Preço
+                    Nome da categoria
                   </label>
 
                   <input
-                    type="number"
-                    name="price"
+                    type="text"
+                    name="name"
                     required
-                    min="0"
-                    step="0.01"
-                    placeholder="15.00"
+                    minLength={2}
+                    maxLength={60}
+                    placeholder="Ex: Unhas"
+                    className={inputClasses}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className={`rounded-2xl border px-5 py-4 font-semibold transition ${theme.primaryButton}`}
+                >
+                  Criar categoria
+                </button>
+              </form>
+
+              {business.serviceCategories.length > 0 && (
+                <div className="mt-6 grid gap-3">
+                  {business.serviceCategories.map((category) => (
+                    <div
+                      key={category.id}
+                      className={`rounded-3xl border p-4 ${theme.card}`}
+                    >
+                      <form
+                        action={updateServiceCategoryAction}
+                        className="grid gap-3"
+                      >
+                        <input
+                          type="hidden"
+                          name="categoryId"
+                          value={category.id}
+                        />
+
+                        <label className={`text-sm font-medium ${theme.title}`}>
+                          Categoria
+                        </label>
+
+                        <input
+                          type="text"
+                          name="name"
+                          required
+                          minLength={2}
+                          maxLength={60}
+                          defaultValue={category.name}
+                          className={compactInputClasses}
+                        />
+
+                        <div className="flex flex-col gap-2 sm:flex-row">
+                          <button
+                            type="submit"
+                            className={`flex-1 rounded-2xl border px-4 py-3 text-sm font-semibold transition ${theme.secondaryButton}`}
+                          >
+                            Guardar
+                          </button>
+                        </div>
+                      </form>
+
+                      <form action={deleteServiceCategoryAction} className="mt-2">
+                        <input
+                          type="hidden"
+                          name="categoryId"
+                          value={category.id}
+                        />
+
+                        <button
+                          type="submit"
+                          className="w-full rounded-2xl border border-red-300 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800 transition hover:border-red-500"
+                        >
+                          Apagar categoria
+                        </button>
+                      </form>
+
+                      <p className={`mt-3 text-xs ${theme.muted}`}>
+                        {category._count.services} serviço
+                        {category._count.services === 1 ? "" : "s"} nesta
+                        categoria.
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className={`rounded-[2rem] border p-6 shadow-2xl ${theme.panel}`}>
+              <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
+                Novo serviço
+              </p>
+
+              <h2 className={`mt-3 text-2xl font-bold ${theme.title}`}>
+                Adicionar serviço
+              </h2>
+
+              <p className={`mt-3 text-sm ${theme.muted}`}>
+                Escolha a categoria onde o serviço ficará organizado.
+              </p>
+
+              <form action={createServiceAction} className="mt-6 grid gap-4">
+                <div>
+                  <label className={`text-sm font-medium ${theme.title}`}>
+                    Categoria
+                  </label>
+
+                  <CategorySelect
+                    categories={categories}
+                    defaultValue=""
+                    className={`mt-2 w-full ${selectClasses}`}
+                  />
+                </div>
+
+                <div>
+                  <label className={`text-sm font-medium ${theme.title}`}>
+                    Nome do serviço
+                  </label>
+
+                  <input
+                    type="text"
+                    name="name"
+                    required
+                    minLength={2}
+                    maxLength={80}
+                    placeholder="Ex: Unhas em gel"
                     className={inputClasses}
                   />
                 </div>
 
                 <div>
                   <label className={`text-sm font-medium ${theme.title}`}>
-                    Duração
+                    Descrição
                   </label>
 
-                  <DurationSelect
-                    defaultValue={60}
-                    className={`mt-2 w-full ${selectClasses}`}
+                  <textarea
+                    name="description"
+                    rows={4}
+                    maxLength={240}
+                    placeholder="Pequena descrição do serviço"
+                    className={`${inputClasses} resize-none`}
                   />
                 </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className={`text-sm font-medium ${theme.title}`}>
+                      Preço
+                    </label>
+
+                    <input
+                      type="number"
+                      name="price"
+                      required
+                      min="0"
+                      step="0.01"
+                      placeholder="15.00"
+                      className={inputClasses}
+                    />
+                  </div>
+
+                  <div>
+                    <label className={`text-sm font-medium ${theme.title}`}>
+                      Duração
+                    </label>
+
+                    <DurationSelect
+                      defaultValue={60}
+                      className={`mt-2 w-full ${selectClasses}`}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className={`mt-2 rounded-2xl border px-5 py-4 font-semibold transition ${theme.primaryButton}`}
+                >
+                  Criar serviço
+                </button>
+              </form>
+
+              <div className={`mt-6 rounded-3xl border p-5 ${theme.card}`}>
+                <p className={`text-sm ${theme.muted}`}>
+                  Apagar uma categoria não apaga os serviços. Eles voltam para
+                  Sem categoria.
+                </p>
               </div>
-
-              <button
-                type="submit"
-                className={`mt-2 rounded-2xl border px-5 py-4 font-semibold transition ${theme.primaryButton}`}
-              >
-                Criar serviço
-              </button>
-            </form>
-
-            <div className={`mt-6 rounded-3xl border p-5 ${theme.card}`}>
-              <p className={`text-sm ${theme.muted}`}>
-                Serviços já usados em marcações não podem ser apagados, apenas
-                desativados. Isso mantém o histórico correto.
-              </p>
             </div>
           </div>
 
@@ -536,16 +800,29 @@ export default async function DashboardServicesPage({
                   <p className={theme.muted}>Nenhum serviço ativo.</p>
                 </div>
               ) : (
-                <div className="mt-4 grid gap-4">
-                  {activeServices.map((service) => (
-                    <ServiceCard
-                      key={service.id}
-                      service={service}
+                <div className="mt-4 grid gap-8">
+                  {business.serviceCategories.map((category) => (
+                    <ServiceGroup
+                      key={category.id}
+                      title={category.name}
+                      services={activeServices.filter(
+                        (service) => service.categoryId === category.id,
+                      )}
+                      categories={categories}
                       theme={theme}
                       compactInputClasses={compactInputClasses}
                       compactSelectClasses={compactSelectClasses}
                     />
                   ))}
+
+                  <ServiceGroup
+                    title="Sem categoria"
+                    services={uncategorizedActiveServices}
+                    categories={categories}
+                    theme={theme}
+                    compactInputClasses={compactInputClasses}
+                    compactSelectClasses={compactSelectClasses}
+                  />
                 </div>
               )}
             </div>
@@ -573,16 +850,29 @@ export default async function DashboardServicesPage({
                   <p className={theme.muted}>Nenhum serviço desativado.</p>
                 </div>
               ) : (
-                <div className="mt-4 grid gap-4">
-                  {inactiveServices.map((service) => (
-                    <ServiceCard
-                      key={service.id}
-                      service={service}
+                <div className="mt-4 grid gap-8">
+                  {business.serviceCategories.map((category) => (
+                    <ServiceGroup
+                      key={category.id}
+                      title={category.name}
+                      services={inactiveServices.filter(
+                        (service) => service.categoryId === category.id,
+                      )}
+                      categories={categories}
                       theme={theme}
                       compactInputClasses={compactInputClasses}
                       compactSelectClasses={compactSelectClasses}
                     />
                   ))}
+
+                  <ServiceGroup
+                    title="Sem categoria"
+                    services={uncategorizedInactiveServices}
+                    categories={categories}
+                    theme={theme}
+                    compactInputClasses={compactInputClasses}
+                    compactSelectClasses={compactSelectClasses}
+                  />
                 </div>
               )}
             </div>

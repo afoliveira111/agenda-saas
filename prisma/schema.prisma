@@ -18,15 +18,16 @@ model Business {
   description       String?
   theme             String   @default("LUXURY")
 
-  services    Service[]
-  customers   Customer[]
-  bookings    Booking[]
-  workHours   WorkHour[]
-  blockedDays BlockedDay[]
-  users       User[]
+  services          Service[]
+  serviceCategories ServiceCategory[]
+  customers         Customer[]
+  bookings          Booking[]
+  workHours         WorkHour[]
+  blockedDays       BlockedDay[]
+  users             User[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 model User {
@@ -61,10 +62,32 @@ model Session {
   @@index([expiresAt])
 }
 
+model ServiceCategory {
+  id         String   @id @default(cuid())
+
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id])
+
+  name       String
+  sortOrder  Int      @default(0)
+
+  services   Service[]
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([businessId, name])
+  @@index([businessId, sortOrder])
+}
+
 model Service {
   id          String   @id @default(cuid())
+
   businessId  String
   business    Business @relation(fields: [businessId], references: [id])
+
+  categoryId  String?
+  category    ServiceCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
   name        String
   description String?
@@ -76,6 +99,8 @@ model Service {
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([businessId, categoryId])
 }
 
 model Customer {
