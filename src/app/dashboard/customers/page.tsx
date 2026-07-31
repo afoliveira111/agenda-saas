@@ -144,8 +144,8 @@ export default async function DashboardCustomersPage() {
 
   return (
     <main className={`min-h-screen ${theme.page}`}>
-      <section className="mx-auto max-w-7xl px-6 py-10">
-        <div className={`rounded-[2rem] border p-8 shadow-2xl ${theme.hero}`}>
+      <section className="mx-auto max-w-[88rem] px-5 py-8 sm:px-6 lg:py-10">
+        <div className={`rounded-[2.3rem] border p-8 shadow-2xl lg:p-10 ${theme.hero}`}>
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className={`text-sm uppercase tracking-[0.3em] ${theme.subtle}`}>
@@ -167,14 +167,14 @@ export default async function DashboardCustomersPage() {
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/dashboard"
-                className={`rounded-2xl border px-5 py-3 text-center font-semibold transition ${theme.secondaryButton}`}
+                className={`rounded-full border px-5 py-3 text-center font-semibold transition ${theme.secondaryButton}`}
               >
                 Voltar ao painel
               </Link>
 
               <Link
                 href={`/book/${business.slug}`}
-                className={`rounded-2xl border px-5 py-3 text-center font-semibold transition ${theme.primaryButton}`}
+                className={`rounded-full border px-5 py-3 text-center font-semibold transition ${theme.primaryButton}`}
               >
                 Abrir página pública
               </Link>
@@ -182,7 +182,7 @@ export default async function DashboardCustomersPage() {
           </div>
 
           <div className="mt-8 grid gap-4 md:grid-cols-4">
-            <div className={`rounded-3xl border p-5 ${theme.card}`}>
+            <div className={`rounded-[1.7rem] border p-5 ${theme.card}`}>
               <p className={`text-sm ${theme.muted}`}>Clientes</p>
 
               <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
@@ -190,7 +190,7 @@ export default async function DashboardCustomersPage() {
               </p>
             </div>
 
-            <div className={`rounded-3xl border p-5 ${theme.card}`}>
+            <div className={`rounded-[1.7rem] border p-5 ${theme.card}`}>
               <p className={`text-sm ${theme.muted}`}>Com marcações</p>
 
               <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
@@ -198,7 +198,7 @@ export default async function DashboardCustomersPage() {
               </p>
             </div>
 
-            <div className={`rounded-3xl border p-5 ${theme.card}`}>
+            <div className={`rounded-[1.7rem] border p-5 ${theme.card}`}>
               <p className={`text-sm ${theme.muted}`}>Total de marcações</p>
 
               <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
@@ -206,7 +206,7 @@ export default async function DashboardCustomersPage() {
               </p>
             </div>
 
-            <div className={`rounded-3xl border p-5 ${theme.card}`}>
+            <div className={`rounded-[1.7rem] border p-5 ${theme.card}`}>
               <p className={`text-sm ${theme.muted}`}>Valor estimado</p>
 
               <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
@@ -216,7 +216,7 @@ export default async function DashboardCustomersPage() {
           </div>
         </div>
 
-        <div className={`mt-8 rounded-[2rem] border p-4 shadow-2xl ${theme.panel}`}>
+        <div className={`mt-8 rounded-[2.2rem] border p-5 shadow-2xl ${theme.panel}`}>
           <div className={`border-b px-2 pb-5 ${theme.line}`}>
             <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
               Base de clientes
@@ -271,7 +271,7 @@ export default async function DashboardCustomersPage() {
                 return (
                   <div
                     key={customer.id}
-                    className={`rounded-3xl border p-5 ${theme.card}`}
+                    className={`rounded-[1.7rem] border p-5 ${theme.card}`}
                   >
                     <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
                       <div>
@@ -308,7 +308,7 @@ export default async function DashboardCustomersPage() {
                         </div>
 
                         <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                          <div className={`rounded-2xl border p-4 ${theme.panelSoft}`}>
+                          <div className={`rounded-[1.5rem] border p-4 ${theme.panelSoft}`}>
                             <p className={`text-xs ${theme.subtle}`}>
                               Marcações
                             </p>
@@ -318,7 +318,7 @@ export default async function DashboardCustomersPage() {
                             </p>
                           </div>
 
-                          <div className={`rounded-2xl border p-4 ${theme.panelSoft}`}>
+                          <div className={`rounded-[1.5rem] border p-4 ${theme.panelSoft}`}>
                             <p className={`text-xs ${theme.subtle}`}>
                               Valor estimado
                             </p>
@@ -328,7 +328,7 @@ export default async function DashboardCustomersPage() {
                             </p>
                           </div>
 
-                          <div className={`rounded-2xl border p-4 ${theme.panelSoft}`}>
+                          <div className={`rounded-[1.5rem] border p-4 ${theme.panelSoft}`}>
                             <p className={`text-xs ${theme.subtle}`}>
                               Próxima marcação
                             </p>
@@ -344,7 +344,7 @@ export default async function DashboardCustomersPage() {
                         </div>
 
                         {lastBooking && (
-                          <div className={`mt-5 rounded-2xl border p-4 ${theme.panelSoft}`}>
+                          <div className={`mt-5 rounded-[1.5rem] border p-4 ${theme.panelSoft}`}>
                             <div className="flex flex-wrap items-center justify-between gap-3">
                               <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
                                 Última marcação
@@ -375,7 +375,7 @@ export default async function DashboardCustomersPage() {
                       </div>
 
                       <div className="flex flex-col gap-4">
-                        <div className={`rounded-2xl border p-4 ${theme.panelSoft}`}>
+                        <div className={`rounded-[1.5rem] border p-4 ${theme.panelSoft}`}>
                           <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
                             Contacto rápido
                           </p>
@@ -390,20 +390,20 @@ export default async function DashboardCustomersPage() {
                               href={whatsappUrl}
                               target="_blank"
                               rel="noreferrer"
-                              className={`mt-4 block rounded-2xl border px-4 py-3 text-center text-sm font-semibold transition ${theme.primaryButton}`}
+                              className={`mt-4 block rounded-full border px-4 py-3 text-center text-sm font-semibold transition ${theme.primaryButton}`}
                             >
                               Enviar WhatsApp
                             </a>
                           ) : (
                             <div
-                              className={`mt-4 rounded-2xl border px-4 py-3 text-center text-sm font-semibold ${theme.badge}`}
+                              className={`mt-4 rounded-full border px-4 py-3 text-center text-sm font-semibold ${theme.badge}`}
                             >
                               Cliente sem telefone
                             </div>
                           )}
                         </div>
 
-                        <div className={`rounded-2xl border p-4 ${theme.panelSoft}`}>
+                        <div className={`rounded-[1.5rem] border p-4 ${theme.panelSoft}`}>
                           <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
                             Histórico recente
                           </p>
@@ -417,7 +417,7 @@ export default async function DashboardCustomersPage() {
                               {customer.bookings.slice(0, 3).map((booking) => (
                                 <div
                                   key={booking.id}
-                                  className={`rounded-2xl border p-3 ${theme.cardStrong}`}
+                                  className={`rounded-[1.2rem] border p-3 ${theme.cardStrong}`}
                                 >
                                   <div className="flex flex-wrap items-center justify-between gap-2">
                                     <p
