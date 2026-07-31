@@ -235,7 +235,7 @@ export default async function DashboardBusinessesPage({
 
             <p className="mt-3 text-sm text-zinc-500">
               Crie um novo cliente da plataforma. Depois, em Utilizadores, pode
-              criar a dona e associar ao negócio.
+              criar o gerente e associar ao negócio.
             </p>
 
             <form
@@ -466,7 +466,7 @@ export default async function DashboardBusinessesPage({
                             </p>
 
                             <p>
-                              Donas associadas:{" "}
+                              Gerentes associados:{" "}
                               <span className="text-zinc-300">
                                 {business.users.length > 0
                                   ? business.users
@@ -545,7 +545,7 @@ export default async function DashboardBusinessesPage({
                             </div>
 
                             <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-4">
-                              <p className="text-xs text-zinc-600">Donas</p>
+                              <p className="text-xs text-zinc-600">Gerentes</p>
 
                               <p className="mt-1 text-xl font-bold">
                                 {business.users.length}
@@ -590,7 +590,7 @@ export default async function DashboardBusinessesPage({
                             href="/admin/users"
                             className="rounded-2xl border border-zinc-700 px-5 py-3 text-center text-sm font-semibold text-zinc-300 transition hover:border-white hover:text-white"
                           >
-                            Gerir dona
+                            Gerir gerente
                           </Link>
                         </div>
                       </div>

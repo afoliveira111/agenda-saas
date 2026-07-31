@@ -20,7 +20,7 @@ function formatRole(role: string) {
   }
 
   if (role === "OWNER") {
-    return "Dona do negócio"
+    return "Gerente do negócio"
   }
 
   return role
@@ -84,8 +84,7 @@ export default async function AdminUsersPage({
               </h1>
 
               <p className="mt-4 max-w-2xl text-zinc-400">
-                Crie o acesso das donas dos negócios e defina quem é ADMIN ou
-                OWNER.
+                Crie o acesso dos gerentes dos negócios e defina quem é Admin ou Gerente.
               </p>
             </div>
 
@@ -120,7 +119,7 @@ export default async function AdminUsersPage({
             </div>
 
             <div className="rounded-3xl border border-zinc-800 bg-[#202024] p-5">
-              <p className="text-sm text-zinc-500">Donas</p>
+              <p className="text-sm text-zinc-500">Gerentes</p>
 
               <p className="mt-2 text-3xl font-bold">{ownerUsers.length}</p>
             </div>
@@ -156,8 +155,8 @@ export default async function AdminUsersPage({
             <h2 className="mt-3 text-2xl font-bold">Criar utilizador</h2>
 
             <p className="mt-3 text-sm leading-6 text-zinc-500">
-              Para uma dona de negócio, escolha o tipo OWNER e selecione o
-              negócio dela.
+              Para um gerente de negócio, escolha o tipo Gerente e selecione o
+              negócio correspondente.
             </p>
 
             <form action={createUserAction} className="mt-6 grid gap-4">
@@ -172,7 +171,7 @@ export default async function AdminUsersPage({
                   required
                   minLength={2}
                   maxLength={80}
-                  placeholder="Ex: Dona Essência"
+                  placeholder="Ex: Gerente Essência"
                   className="mt-2 w-full rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-4 text-white outline-none transition placeholder:text-zinc-700 focus:border-white"
                 />
               </div>
@@ -218,7 +217,7 @@ export default async function AdminUsersPage({
                   defaultValue="OWNER"
                   className="mt-2 w-full rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-4 text-white outline-none transition focus:border-white"
                 >
-                  <option value="OWNER">Dona do negócio</option>
+                  <option value="OWNER">Gerente do negócio</option>
                   <option value="ADMIN">Admin da plataforma</option>
                 </select>
               </div>
@@ -243,7 +242,7 @@ export default async function AdminUsersPage({
                 </select>
 
                 <p className="mt-2 text-xs text-zinc-600">
-                  Obrigatório para utilizador do tipo Dona do negócio.
+                  Obrigatório para utilizador do tipo Gerente do negócio.
                 </p>
               </div>
 
@@ -338,7 +337,7 @@ export default async function AdminUsersPage({
                             defaultValue={user.role}
                             className="rounded-2xl border border-zinc-800 bg-black px-4 py-3 text-white outline-none transition focus:border-white"
                           >
-                            <option value="OWNER">Dona do negócio</option>
+                            <option value="OWNER">Gerente do negócio</option>
                             <option value="ADMIN">Admin da plataforma</option>
                           </select>
 

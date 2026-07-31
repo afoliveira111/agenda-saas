@@ -186,7 +186,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
             </div>
 
             <div className={`rounded-3xl border p-5 ${theme.card}`}>
-              <p className={`text-sm ${theme.muted}`}>Donas</p>
+              <p className={`text-sm ${theme.muted}`}>Gerentes</p>
               <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
                 {ownerCount}
               </p>

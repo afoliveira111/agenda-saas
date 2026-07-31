@@ -9,7 +9,7 @@ const features = [
   {
     title: "Painel do negócio",
     description:
-      "A dona acompanha marcações, clientes, serviços, horários e bloqueios num só lugar.",
+      "O gerente acompanha marcações, clientes, serviços, horários e bloqueios num só lugar.",
   },
   {
     title: "Temas por negócio",

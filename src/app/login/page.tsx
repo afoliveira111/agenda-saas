@@ -55,7 +55,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             </h1>
 
             <p className="mt-5 max-w-2xl text-lg leading-8 text-zinc-400">
-              Administradores entram no painel da plataforma. Donas de negócio
+              Administradores entram no painel da plataforma. Gerentes de negócio
               entram apenas no painel do próprio negócio.
             </p>
           </div>
@@ -113,11 +113,6 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
                 Entrar
               </button>
             </form>
-
-            <p className="mt-5 text-sm leading-6 text-zinc-500">
-              No primeiro acesso, usa o teu e-mail e a senha admin atual. O
-              sistema cria automaticamente o primeiro utilizador ADMIN.
-            </p>
           </div>
         </div>
       </section>

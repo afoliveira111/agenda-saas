@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
-import { createPasswordHash } from "@/lib/auth"
+import { createPasswordHash, requireAdminSession } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
 function normalizeText(value: FormDataEntryValue | null) {
@@ -26,6 +26,8 @@ function isValidEmail(email: string) {
 }
 
 export async function createUserAction(formData: FormData) {
+  await requireAdminSession("/admin/users")
+
   const name = normalizeText(formData.get("name"))
   const email = normalizeEmail(normalizeText(formData.get("email")))
   const password = normalizeText(formData.get("password"))
@@ -49,7 +51,7 @@ export async function createUserAction(formData: FormData) {
   }
 
   if (role === "OWNER" && !businessId) {
-    redirectWithError("Selecione o negócio da dona.")
+    redirectWithError("Selecione o negócio do gerente.")
   }
 
   const existingUser = await prisma.user.findUnique({
@@ -86,11 +88,14 @@ export async function createUserAction(formData: FormData) {
 
   revalidatePath("/admin/users")
   revalidatePath("/admin")
+  revalidatePath("/dashboard/businesses")
 
   redirectWithSuccess("Utilizador criado com sucesso.")
 }
 
 export async function updateUserRoleAction(formData: FormData) {
+  const session = await requireAdminSession("/admin/users")
+
   const userId = normalizeText(formData.get("userId"))
   const role = normalizeText(formData.get("role"))
   const businessId = normalizeText(formData.get("businessId"))
@@ -99,12 +104,18 @@ export async function updateUserRoleAction(formData: FormData) {
     redirectWithError("Utilizador não encontrado.")
   }
 
+  if (userId === session.user.id) {
+    redirectWithError(
+      "Não é possível alterar as permissões do utilizador que está logado.",
+    )
+  }
+
   if (role !== "ADMIN" && role !== "OWNER") {
     redirectWithError("Tipo de utilizador inválido.")
   }
 
   if (role === "OWNER" && !businessId) {
-    redirectWithError("Selecione o negócio da dona.")
+    redirectWithError("Selecione o negócio do gerente.")
   }
 
   const user = await prisma.user.findUnique({
@@ -147,11 +158,14 @@ export async function updateUserRoleAction(formData: FormData) {
 
   revalidatePath("/admin/users")
   revalidatePath("/admin")
+  revalidatePath("/dashboard/businesses")
 
   redirectWithSuccess("Permissões atualizadas com sucesso.")
 }
 
 export async function updateUserPasswordAction(formData: FormData) {
+  const session = await requireAdminSession("/admin/users")
+
   const userId = normalizeText(formData.get("userId"))
   const password = normalizeText(formData.get("password"))
 
@@ -182,22 +196,31 @@ export async function updateUserPasswordAction(formData: FormData) {
     },
   })
 
-  await prisma.session.deleteMany({
-    where: {
-      userId: user.id,
-    },
-  })
+  if (user.id !== session.user.id) {
+    await prisma.session.deleteMany({
+      where: {
+        userId: user.id,
+      },
+    })
+  }
 
   revalidatePath("/admin/users")
+  revalidatePath("/admin")
 
   redirectWithSuccess("Senha atualizada com sucesso.")
 }
 
 export async function deleteUserAction(formData: FormData) {
+  const session = await requireAdminSession("/admin/users")
+
   const userId = normalizeText(formData.get("userId"))
 
   if (!userId) {
     redirectWithError("Utilizador não encontrado.")
+  }
+
+  if (userId === session.user.id) {
+    redirectWithError("Não é possível apagar o utilizador que está logado.")
   }
 
   const user = await prisma.user.findUnique({
@@ -230,6 +253,7 @@ export async function deleteUserAction(formData: FormData) {
 
   revalidatePath("/admin/users")
   revalidatePath("/admin")
+  revalidatePath("/dashboard/businesses")
 
   redirectWithSuccess("Utilizador apagado com sucesso.")
 }
