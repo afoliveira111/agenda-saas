@@ -1,5 +1,5 @@
 import { cookies } from "next/headers"
-import { getCurrentSession } from "@/lib/auth"
+import { requireAdminSession, requireSession } from "@/lib/auth"
 
 const DASHBOARD_BUSINESS_COOKIE = "agenda_saas_dashboard_business_slug"
 
@@ -7,10 +7,10 @@ function getDefaultBusinessSlug() {
   return process.env.DASHBOARD_BUSINESS_SLUG?.trim() || "demo"
 }
 
-export async function getCurrentBusinessSlug() {
-  const session = await getCurrentSession()
+export async function getCurrentBusinessSlug(nextUrl = "/dashboard") {
+  const session = await requireSession(nextUrl)
 
-  if (session?.user.role === "OWNER" && session.user.business?.slug) {
+  if (session.user.role === "OWNER" && session.user.business?.slug) {
     return session.user.business.slug
   }
 
@@ -24,6 +24,8 @@ export async function getCurrentBusinessSlug() {
 }
 
 export async function setCurrentBusinessSlug(slug: string) {
+  await requireAdminSession("/dashboard/businesses")
+
   const cookieStore = await cookies()
 
   cookieStore.set({

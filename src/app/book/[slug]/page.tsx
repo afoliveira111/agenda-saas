@@ -409,7 +409,7 @@ export default async function BookingPage({
                   Marcação online
                 </p>
 
-                <h1 className="mt-4 max-w-2xl text-4xl font-bold tracking-tight sm:text-6xl">
+                <h1 className="mt-4 max-w-2xl text-3xl font-bold tracking-tight sm:text-5xl">
                   {business.name}
                 </h1>
 
@@ -430,7 +430,7 @@ export default async function BookingPage({
 
                 {hasContactInfo && (
                   <div
-                    className={`mt-8 grid gap-3 text-sm sm:grid-cols-3 ${theme.muted}`}
+                    className={`mt-8 grid gap-3 text-sm sm:grid-cols-2 ${theme.muted}`}
                   >
                     {business.address && (
                       <div className={`rounded-2xl border p-4 ${theme.card}`}>
@@ -514,14 +514,14 @@ export default async function BookingPage({
                   </p>
 
                   {businessLogo ? (
-                    <div className="mt-5 flex min-h-[320px] items-center justify-center rounded-[1.5rem] border border-current/10 bg-black p-8">
+                    <div className="mt-5 flex min-h-[220px] items-center justify-center rounded-[1.5rem] border border-current/10 bg-black p-6">
                       <Image
                         src={businessLogo}
                         alt={`Logo ${business.name}`}
                         width={420}
                         height={420}
                         priority
-                        className="h-auto max-h-72 w-auto max-w-full object-contain"
+                        className="h-auto max-h-52 w-auto max-w-full object-contain"
                       />
                     </div>
                   ) : (
