@@ -266,15 +266,13 @@ export default async function BookingSuccessPage({
               </p>
             </div>
 
-            <div className="mt-8 grid gap-4 sm:grid-cols-2">
+            <div className="mt-8">
               <Link
                 href={`/book/${slug}`}
-                className={`rounded-2xl px-5 py-4 text-center font-semibold transition ${theme.primaryButton}`}
+                className={`block rounded-full px-5 py-4 text-center font-semibold transition ${theme.primaryButton}`}
               >
                 Fazer nova marcação
               </Link>
-
-             
             </div>
           </div>
         </div>

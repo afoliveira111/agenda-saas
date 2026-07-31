@@ -1,4 +1,9 @@
+import { cookies } from "next/headers"
 import Link from "next/link"
+import {
+  getAdminThemeClasses,
+  normalizeAdminTheme,
+} from "@/lib/admin-theme"
 import { prisma } from "@/lib/prisma"
 import { getCurrentBusinessSlug } from "@/lib/current-business"
 import {
@@ -14,6 +19,8 @@ type ToolsPageProps = {
     success?: string
   }>
 }
+
+const ADMIN_THEME_COOKIE = "agenda_saas_admin_theme"
 
 function formatDate(date: Date) {
   return new Intl.DateTimeFormat("pt-PT", {
@@ -35,11 +42,25 @@ function getStatusLabel(status: string) {
   return statusMap[status] ?? status
 }
 
+function getFeedbackClasses(type: "error" | "success") {
+  if (type === "error") {
+    return "border-red-300 bg-red-50 text-red-800"
+  }
+
+  return "border-emerald-300 bg-emerald-50 text-emerald-800"
+}
+
 export default async function DashboardToolsPage({
   searchParams,
 }: ToolsPageProps) {
   const search = await searchParams
   const { error, success } = search
+
+  const cookieStore = await cookies()
+  const currentAdminTheme = normalizeAdminTheme(
+    cookieStore.get(ADMIN_THEME_COOKIE)?.value,
+  )
+  const theme = getAdminThemeClasses(currentAdminTheme)
 
   const currentBusinessSlug = await getCurrentBusinessSlug()
 
@@ -61,18 +82,20 @@ export default async function DashboardToolsPage({
 
   if (!business) {
     return (
-      <main className="min-h-screen bg-zinc-950 text-white">
+      <main className={`min-h-screen ${theme.page}`}>
         <section className="mx-auto max-w-5xl px-6 py-16">
-          <div className="rounded-[2rem] border border-zinc-800 bg-black p-8">
-            <h1 className="text-3xl font-bold">Negócio não encontrado</h1>
+          <div className={`rounded-[2.2rem] border p-8 shadow-2xl ${theme.panel}`}>
+            <h1 className={`text-3xl font-bold ${theme.title}`}>
+              Negócio não encontrado
+            </h1>
 
-            <p className="mt-3 text-zinc-500">
+            <p className={`mt-3 ${theme.muted}`}>
               Selecione um negócio em /dashboard/businesses.
             </p>
 
             <Link
               href="/dashboard/businesses"
-              className="mt-6 inline-block rounded-2xl border border-white bg-white px-5 py-3 font-semibold text-zinc-950 transition hover:bg-zinc-200"
+              className={`mt-6 inline-block rounded-full border px-5 py-3 font-semibold transition ${theme.primaryButton}`}
             >
               Ir para negócios
             </Link>
@@ -128,20 +151,22 @@ export default async function DashboardToolsPage({
   })
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white">
-      <section className="mx-auto max-w-7xl px-6 py-10">
-        <div className="rounded-[2rem] border border-zinc-800 bg-gradient-to-br from-zinc-900 via-zinc-950 to-black p-8 shadow-2xl">
+    <main className={`min-h-screen ${theme.page}`}>
+      <section className="mx-auto max-w-[88rem] px-5 py-8 sm:px-6 lg:py-10">
+        <div className={`rounded-[2.3rem] border p-8 shadow-2xl lg:p-10 ${theme.hero}`}>
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">
+              <p className={`text-sm uppercase tracking-[0.3em] ${theme.subtle}`}>
                 Desenvolvimento
               </p>
 
-              <h1 className="mt-3 text-4xl font-bold tracking-tight text-white md:text-5xl">
+              <h1
+                className={`mt-3 text-4xl font-bold tracking-tight md:text-5xl ${theme.title}`}
+              >
                 Ferramentas
               </h1>
 
-              <p className="mt-4 max-w-2xl text-zinc-400">
+              <p className={`mt-4 max-w-2xl ${theme.muted}`}>
                 Limpe dados de teste do negócio selecionado sem apagar serviços,
                 horários ou dados principais do negócio.
               </p>
@@ -150,14 +175,14 @@ export default async function DashboardToolsPage({
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/dashboard"
-                className="rounded-2xl border border-zinc-700 px-5 py-3 text-center font-semibold text-zinc-300 transition hover:border-white hover:text-white"
+                className={`rounded-full border px-5 py-3 text-center font-semibold transition ${theme.secondaryButton}`}
               >
                 Voltar ao painel
               </Link>
 
               <Link
                 href="/dashboard/businesses"
-                className="rounded-2xl border border-white bg-white px-5 py-3 text-center font-semibold text-zinc-950 transition hover:bg-zinc-200"
+                className={`rounded-full border px-5 py-3 text-center font-semibold transition ${theme.primaryButton}`}
               >
                 Ver negócios
               </Link>
@@ -165,30 +190,30 @@ export default async function DashboardToolsPage({
           </div>
 
           <div className="mt-8 grid gap-4 md:grid-cols-4">
-            <div className="rounded-3xl border border-zinc-800 bg-black/40 p-5">
-              <p className="text-sm text-zinc-500">Negócio selecionado</p>
-              <p className="mt-2 truncate text-lg font-semibold">
+            <div className={`rounded-[1.7rem] border p-5 ${theme.card}`}>
+              <p className={`text-sm ${theme.muted}`}>Negócio selecionado</p>
+              <p className={`mt-2 truncate text-lg font-semibold ${theme.title}`}>
                 {business.name}
               </p>
             </div>
 
-            <div className="rounded-3xl border border-zinc-800 bg-black/40 p-5">
-              <p className="text-sm text-zinc-500">Marcações</p>
-              <p className="mt-2 text-3xl font-bold">
+            <div className={`rounded-[1.7rem] border p-5 ${theme.card}`}>
+              <p className={`text-sm ${theme.muted}`}>Marcações</p>
+              <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
                 {business._count.bookings}
               </p>
             </div>
 
-            <div className="rounded-3xl border border-zinc-800 bg-black/40 p-5">
-              <p className="text-sm text-zinc-500">Clientes</p>
-              <p className="mt-2 text-3xl font-bold">
+            <div className={`rounded-[1.7rem] border p-5 ${theme.card}`}>
+              <p className={`text-sm ${theme.muted}`}>Clientes</p>
+              <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
                 {business._count.customers}
               </p>
             </div>
 
-            <div className="rounded-3xl border border-zinc-800 bg-black/40 p-5">
-              <p className="text-sm text-zinc-500">Serviços preservados</p>
-              <p className="mt-2 text-3xl font-bold">
+            <div className={`rounded-[1.7rem] border p-5 ${theme.card}`}>
+              <p className={`text-sm ${theme.muted}`}>Serviços preservados</p>
+              <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
                 {business._count.services}
               </p>
             </div>
@@ -197,10 +222,10 @@ export default async function DashboardToolsPage({
 
         {(error || success) && (
           <div
-            className={`mt-6 rounded-3xl border px-5 py-4 text-sm font-medium ${
+            className={`mt-6 rounded-[1.7rem] border px-5 py-4 text-sm font-semibold ${
               error
-                ? "border-red-900/70 bg-red-950/30 text-red-300"
-                : "border-zinc-700 bg-zinc-900 text-zinc-200"
+                ? getFeedbackClasses("error")
+                : getFeedbackClasses("success")
             }`}
           >
             {error || success}
@@ -209,16 +234,16 @@ export default async function DashboardToolsPage({
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_420px]">
           <div className="grid gap-6">
-            <div className="rounded-[2rem] border border-red-900/60 bg-red-950/10 p-6 shadow-2xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-red-400">
+            <div className="rounded-[2.2rem] border border-red-300 bg-red-50 p-6 shadow-2xl">
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-red-700">
                 Limpeza forte
               </p>
 
-              <h2 className="mt-3 text-2xl font-bold text-white">
+              <h2 className="mt-3 text-2xl font-bold text-red-950">
                 Apagar marcações e clientes
               </h2>
 
-              <p className="mt-3 text-sm text-zinc-400">
+              <p className="mt-3 text-sm text-red-800">
                 Esta ação apaga todas as marcações e todos os clientes do
                 negócio selecionado. Serviços, horários, bloqueios e dados do
                 negócio serão mantidos.
@@ -229,7 +254,7 @@ export default async function DashboardToolsPage({
                 className="mt-6 grid gap-4"
               >
                 <div>
-                  <label className="text-sm font-medium text-zinc-300">
+                  <label className="text-sm font-medium text-red-950">
                     Confirmação
                   </label>
 
@@ -237,31 +262,33 @@ export default async function DashboardToolsPage({
                     type="text"
                     name="confirmText"
                     placeholder='Escreva "LIMPAR"'
-                    className="mt-2 w-full rounded-2xl border border-red-900/70 bg-black px-4 py-4 text-white outline-none transition placeholder:text-zinc-700 focus:border-red-400"
+                    className="mt-2 w-full rounded-[1.2rem] border border-red-300 bg-white px-4 py-4 text-red-950 outline-none transition placeholder:text-red-300 focus:border-red-700"
                   />
 
-                  <p className="mt-2 text-xs text-zinc-600">
+                  <p className="mt-2 text-xs text-red-700">
                     Para evitar erros, escreva exatamente LIMPAR.
                   </p>
                 </div>
 
                 <button
                   type="submit"
-                  className="rounded-2xl border border-red-500 bg-red-950/40 px-5 py-4 font-semibold text-red-200 transition hover:bg-red-950"
+                  className="rounded-full border border-red-700 bg-red-700 px-5 py-4 font-semibold text-white transition hover:bg-red-800"
                 >
                   Apagar marcações e clientes
                 </button>
               </form>
             </div>
 
-            <div className="rounded-[2rem] border border-zinc-800 bg-black p-6 shadow-2xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-zinc-600">
+            <div className={`rounded-[2.2rem] border p-6 shadow-2xl ${theme.panel}`}>
+              <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
                 Limpezas rápidas
               </p>
 
-              <h2 className="mt-3 text-2xl font-bold">Ações seguras</h2>
+              <h2 className={`mt-3 text-2xl font-bold ${theme.title}`}>
+                Ações seguras
+              </h2>
 
-              <p className="mt-3 text-sm text-zinc-500">
+              <p className={`mt-3 text-sm ${theme.muted}`}>
                 Estas ações ajudam a manter o ambiente de testes organizado sem
                 apagar serviços ou configurações.
               </p>
@@ -269,19 +296,19 @@ export default async function DashboardToolsPage({
               <div className="mt-6 grid gap-4 md:grid-cols-3">
                 <form
                   action={clearCancelledBookingsAction}
-                  className="rounded-3xl border border-zinc-800 bg-zinc-950 p-5"
+                  className={`rounded-[1.7rem] border p-5 ${theme.card}`}
                 >
-                  <p className="text-sm font-semibold text-white">
+                  <p className={`text-sm font-semibold ${theme.title}`}>
                     Marcações canceladas
                   </p>
 
-                  <p className="mt-2 text-sm text-zinc-500">
+                  <p className={`mt-2 text-sm ${theme.muted}`}>
                     Atualmente: {cancelledBookingsCount}
                   </p>
 
                   <button
                     type="submit"
-                    className="mt-5 w-full rounded-2xl border border-zinc-700 px-4 py-3 text-sm font-semibold text-zinc-300 transition hover:border-white hover:text-white"
+                    className={`mt-5 w-full rounded-full border px-4 py-3 text-sm font-semibold transition ${theme.secondaryButton}`}
                   >
                     Apagar canceladas
                   </button>
@@ -289,19 +316,19 @@ export default async function DashboardToolsPage({
 
                 <form
                   action={clearCustomersWithoutBookingsAction}
-                  className="rounded-3xl border border-zinc-800 bg-zinc-950 p-5"
+                  className={`rounded-[1.7rem] border p-5 ${theme.card}`}
                 >
-                  <p className="text-sm font-semibold text-white">
+                  <p className={`text-sm font-semibold ${theme.title}`}>
                     Clientes sem marcação
                   </p>
 
-                  <p className="mt-2 text-sm text-zinc-500">
+                  <p className={`mt-2 text-sm ${theme.muted}`}>
                     Atualmente: {customersWithoutBookingsCount}
                   </p>
 
                   <button
                     type="submit"
-                    className="mt-5 w-full rounded-2xl border border-zinc-700 px-4 py-3 text-sm font-semibold text-zinc-300 transition hover:border-white hover:text-white"
+                    className={`mt-5 w-full rounded-full border px-4 py-3 text-sm font-semibold transition ${theme.secondaryButton}`}
                   >
                     Apagar clientes vazios
                   </button>
@@ -309,19 +336,19 @@ export default async function DashboardToolsPage({
 
                 <form
                   action={resetReminderEmailsAction}
-                  className="rounded-3xl border border-zinc-800 bg-zinc-950 p-5"
+                  className={`rounded-[1.7rem] border p-5 ${theme.card}`}
                 >
-                  <p className="text-sm font-semibold text-white">
+                  <p className={`text-sm font-semibold ${theme.title}`}>
                     Resetar lembretes
                   </p>
 
-                  <p className="mt-2 text-sm text-zinc-500">
+                  <p className={`mt-2 text-sm ${theme.muted}`}>
                     Enviados: {remindersSentCount}
                   </p>
 
                   <button
                     type="submit"
-                    className="mt-5 w-full rounded-2xl border border-zinc-700 px-4 py-3 text-sm font-semibold text-zinc-300 transition hover:border-white hover:text-white"
+                    className={`mt-5 w-full rounded-full border px-4 py-3 text-sm font-semibold transition ${theme.secondaryButton}`}
                   >
                     Permitir reenviar
                   </button>
@@ -329,31 +356,33 @@ export default async function DashboardToolsPage({
               </div>
             </div>
 
-            <div className="rounded-[2rem] border border-zinc-800 bg-black p-6 shadow-2xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-zinc-600">
+            <div className={`rounded-[2.2rem] border p-6 shadow-2xl ${theme.panel}`}>
+              <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
                 Estados
               </p>
 
-              <h2 className="mt-3 text-2xl font-bold">
+              <h2 className={`mt-3 text-2xl font-bold ${theme.title}`}>
                 Marcações por estado
               </h2>
 
               {bookingStatusCounts.length === 0 ? (
-                <div className="mt-6 rounded-3xl border border-zinc-800 bg-zinc-950 p-8 text-center text-zinc-500">
-                  Ainda não existem marcações.
+                <div
+                  className={`mt-6 rounded-[1.7rem] border p-8 text-center ${theme.card}`}
+                >
+                  <p className={theme.muted}>Ainda não existem marcações.</p>
                 </div>
               ) : (
                 <div className="mt-6 grid gap-3 md:grid-cols-5">
                   {bookingStatusCounts.map((item) => (
                     <div
                       key={item.status}
-                      className="rounded-2xl border border-zinc-800 bg-zinc-950 p-4"
+                      className={`rounded-[1.2rem] border p-4 ${theme.card}`}
                     >
-                      <p className="text-xs text-zinc-600">
+                      <p className={`text-xs ${theme.subtle}`}>
                         {getStatusLabel(item.status)}
                       </p>
 
-                      <p className="mt-1 text-2xl font-bold">
+                      <p className={`mt-1 text-2xl font-bold ${theme.title}`}>
                         {item._count._all}
                       </p>
                     </div>
@@ -363,29 +392,33 @@ export default async function DashboardToolsPage({
             </div>
           </div>
 
-          <div className="rounded-[2rem] border border-zinc-800 bg-black p-6 shadow-2xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-zinc-600">
+          <div className={`rounded-[2.2rem] border p-6 shadow-2xl ${theme.panel}`}>
+            <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
               Últimos testes
             </p>
 
-            <h2 className="mt-3 text-2xl font-bold">Marcações recentes</h2>
+            <h2 className={`mt-3 text-2xl font-bold ${theme.title}`}>
+              Marcações recentes
+            </h2>
 
             {latestBookings.length === 0 ? (
-              <div className="mt-6 rounded-3xl border border-zinc-800 bg-zinc-950 p-8 text-center text-zinc-500">
-                Nenhuma marcação recente.
+              <div
+                className={`mt-6 rounded-[1.7rem] border p-8 text-center ${theme.card}`}
+              >
+                <p className={theme.muted}>Nenhuma marcação recente.</p>
               </div>
             ) : (
               <div className="mt-6 grid gap-3">
                 {latestBookings.map((booking) => (
                   <div
                     key={booking.id}
-                    className="rounded-2xl border border-zinc-800 bg-zinc-950 p-4"
+                    className={`rounded-[1.2rem] border p-4 ${theme.card}`}
                   >
-                    <p className="font-semibold text-white">
+                    <p className={`font-semibold ${theme.title}`}>
                       {booking.customer.name}
                     </p>
 
-                    <p className="mt-1 text-sm text-zinc-500">
+                    <p className={`mt-1 text-sm ${theme.muted}`}>
                       {formatDate(booking.startAt)} ·{" "}
                       {getStatusLabel(booking.status)}
                     </p>
@@ -394,8 +427,8 @@ export default async function DashboardToolsPage({
               </div>
             )}
 
-            <div className="mt-6 rounded-3xl border border-zinc-800 bg-zinc-950 p-5">
-              <p className="text-sm text-zinc-500">
+            <div className={`mt-6 rounded-[1.7rem] border p-5 ${theme.card}`}>
+              <p className={`text-sm ${theme.muted}`}>
                 Esta tela é pensada para desenvolvimento. Antes de vender ou
                 publicar, podemos esconder estas ferramentas ou limitar só ao
                 administrador da plataforma.
