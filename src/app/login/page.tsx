@@ -38,15 +38,18 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const errorMessage = getErrorMessage(error)
 
   return (
-    <main className="min-h-screen bg-[#111113] text-white">
-      <section className="mx-auto flex min-h-screen max-w-6xl items-center px-6 py-10">
-        <div className="grid w-full gap-8 lg:grid-cols-[1fr_430px] lg:items-center">
+    <main className="min-h-screen overflow-hidden bg-[#0f0f10] text-white">
+      <section className="relative mx-auto flex min-h-screen max-w-[82rem] items-center px-5 py-10 sm:px-6">
+        <div className="pointer-events-none absolute left-[-10rem] top-[-12rem] h-96 w-96 rounded-full bg-[#d7b98a]/10 blur-3xl" />
+        <div className="pointer-events-none absolute bottom-[-12rem] right-[-10rem] h-96 w-96 rounded-full bg-white/5 blur-3xl" />
+
+        <div className="relative grid w-full gap-10 lg:grid-cols-[1fr_430px] lg:items-center">
           <div>
             <Link href="/" className="text-xl font-black tracking-tight">
               MarcaFlow
             </Link>
 
-            <p className="mt-10 text-sm uppercase tracking-[0.35em] text-zinc-500">
+            <p className="mt-12 text-sm uppercase tracking-[0.35em] text-[#a8895c]">
               Acesso privado
             </p>
 
@@ -58,17 +61,50 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               Administradores entram no painel da plataforma. Gerentes de negócio
               entram apenas no painel do próprio negócio.
             </p>
+
+            <div className="mt-8 grid max-w-2xl gap-3 sm:grid-cols-3">
+              <div className="rounded-[1.4rem] border border-[#2c2924] bg-[#151515] p-4">
+                <p className="text-xs uppercase tracking-[0.25em] text-[#a8895c]">
+                  Admin
+                </p>
+                <p className="mt-2 text-sm text-zinc-400">
+                  Plataforma
+                </p>
+              </div>
+
+              <div className="rounded-[1.4rem] border border-[#2c2924] bg-[#151515] p-4">
+                <p className="text-xs uppercase tracking-[0.25em] text-[#a8895c]">
+                  Gerente
+                </p>
+                <p className="mt-2 text-sm text-zinc-400">
+                  Negócio
+                </p>
+              </div>
+
+              <div className="rounded-[1.4rem] border border-[#2c2924] bg-[#151515] p-4">
+                <p className="text-xs uppercase tracking-[0.25em] text-[#a8895c]">
+                  Agenda
+                </p>
+                <p className="mt-2 text-sm text-zinc-400">
+                  Online
+                </p>
+              </div>
+            </div>
           </div>
 
-          <div className="rounded-[2rem] border border-zinc-800 bg-[#18181b] p-6 shadow-2xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-zinc-600">
+          <div className="rounded-[2.2rem] border border-[#d7b98a]/20 bg-[#151515] p-6 shadow-2xl shadow-black/60">
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#a8895c]">
               Login
             </p>
 
             <h2 className="mt-3 text-2xl font-bold">Acessar conta</h2>
 
+            <p className="mt-2 text-sm text-zinc-500">
+              Use o e-mail e a senha cadastrados para entrar.
+            </p>
+
             {errorMessage && (
-              <div className="mt-5 rounded-2xl border border-red-300 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800">
+              <div className="mt-5 rounded-[1.2rem] border border-red-300 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800">
                 {errorMessage}
               </div>
             )}
@@ -87,7 +123,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
                   required
                   autoComplete="email"
                   placeholder="teu@email.com"
-                  className="mt-2 w-full rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-4 text-white outline-none transition placeholder:text-zinc-700 focus:border-white"
+                  className="mt-2 w-full rounded-[1.2rem] border border-[#2c2924] bg-[#0b0b0c] px-4 py-4 text-white outline-none transition placeholder:text-zinc-700 focus:border-[#f0dcc1]"
                 />
               </div>
 
@@ -102,13 +138,13 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
                   required
                   autoComplete="current-password"
                   placeholder="Digite a senha"
-                  className="mt-2 w-full rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-4 text-white outline-none transition placeholder:text-zinc-700 focus:border-white"
+                  className="mt-2 w-full rounded-[1.2rem] border border-[#2c2924] bg-[#0b0b0c] px-4 py-4 text-white outline-none transition placeholder:text-zinc-700 focus:border-[#f0dcc1]"
                 />
               </div>
 
               <button
                 type="submit"
-                className="rounded-2xl border border-white bg-white px-5 py-4 font-bold text-zinc-950 transition hover:bg-zinc-200"
+                className="rounded-full border border-white bg-white px-5 py-4 font-bold text-zinc-950 transition hover:bg-[#f0dcc1]"
               >
                 Entrar
               </button>
