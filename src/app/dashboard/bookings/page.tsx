@@ -424,8 +424,8 @@ export default async function DashboardBookingsPage({
 
   return (
     <main className={`min-h-screen ${theme.page}`}>
-      <section className="mx-auto max-w-7xl px-6 py-10">
-        <div className={`rounded-[2rem] border p-8 shadow-2xl ${theme.hero}`}>
+      <section className="mx-auto max-w-[88rem] px-5 py-8 sm:px-6 lg:py-10">
+        <div className={`rounded-[2.3rem] border p-8 shadow-2xl lg:p-10 ${theme.hero}`}>
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className={`text-sm uppercase tracking-[0.3em] ${theme.subtle}`}>
@@ -447,14 +447,14 @@ export default async function DashboardBookingsPage({
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/dashboard"
-                className={`rounded-2xl border px-5 py-3 text-center font-semibold transition ${theme.secondaryButton}`}
+                className={`rounded-full border px-5 py-3 text-center font-semibold transition ${theme.secondaryButton}`}
               >
                 Voltar ao painel
               </Link>
 
               <Link
                 href={`/book/${business.slug}`}
-                className={`rounded-2xl border px-5 py-3 text-center font-semibold transition ${theme.primaryButton}`}
+                className={`rounded-full border px-5 py-3 text-center font-semibold transition ${theme.primaryButton}`}
               >
                 Abrir página pública
               </Link>
@@ -462,28 +462,28 @@ export default async function DashboardBookingsPage({
           </div>
 
           <div className="mt-8 grid gap-4 md:grid-cols-4">
-            <div className={`rounded-3xl border p-5 ${theme.card}`}>
+            <div className={`rounded-[1.7rem] border p-5 ${theme.card}`}>
               <p className={`text-sm ${theme.muted}`}>Hoje</p>
               <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
                 {todayBookings.length}
               </p>
             </div>
 
-            <div className={`rounded-3xl border p-5 ${theme.card}`}>
+            <div className={`rounded-[1.7rem] border p-5 ${theme.card}`}>
               <p className={`text-sm ${theme.muted}`}>Próximas</p>
               <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
                 {upcomingBookings.length}
               </p>
             </div>
 
-            <div className={`rounded-3xl border p-5 ${theme.card}`}>
+            <div className={`rounded-[1.7rem] border p-5 ${theme.card}`}>
               <p className={`text-sm ${theme.muted}`}>Confirmadas</p>
               <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
                 {confirmedBookings.length}
               </p>
             </div>
 
-            <div className={`rounded-3xl border p-5 ${theme.card}`}>
+            <div className={`rounded-[1.7rem] border p-5 ${theme.card}`}>
               <p className={`text-sm ${theme.muted}`}>Concluídas</p>
               <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
                 {completedBookings.length}
@@ -504,7 +504,7 @@ export default async function DashboardBookingsPage({
           </div>
         )}
 
-        <div className={`mt-8 rounded-[2rem] border p-4 shadow-2xl ${theme.panel}`}>
+        <div className={`mt-8 rounded-[2.2rem] border p-5 shadow-2xl ${theme.panel}`}>
           <div className={`border-b px-2 pb-5 ${theme.line}`}>
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
@@ -530,7 +530,7 @@ export default async function DashboardBookingsPage({
                     <Link
                       key={filter.view}
                       href={filter.href}
-                      className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${getFilterClasses(
+                      className={`rounded-full border px-4 py-3 text-sm font-semibold transition ${getFilterClasses(
                         {
                           active: isActive,
                           theme,
@@ -606,7 +606,7 @@ export default async function DashboardBookingsPage({
                 return (
                   <div
                     key={booking.id}
-                    className={`rounded-3xl border p-5 ${theme.card}`}
+                    className={`rounded-[1.7rem] border p-5 ${theme.card}`}
                   >
                     <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
                       <div>
@@ -650,7 +650,7 @@ export default async function DashboardBookingsPage({
                           )}
                         </div>
 
-                        <div className={`mt-5 rounded-2xl border p-4 ${theme.panelSoft}`}>
+                        <div className={`mt-5 rounded-[1.5rem] border p-4 ${theme.panelSoft}`}>
                           <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
                             Serviços
                           </p>
@@ -699,7 +699,7 @@ export default async function DashboardBookingsPage({
                           </div>
                         </div>
 
-                        <div className={`mt-5 rounded-[1.7rem] border p-5 shadow-inner ${theme.panelSoft}`}>
+                        <div className={`mt-5 rounded-[1.8rem] border p-5 shadow-inner ${theme.panelSoft}`}>
                           <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                             <div>
                               <p className={`text-xs font-semibold uppercase tracking-[0.35em] ${theme.subtle}`}>
@@ -773,7 +773,7 @@ export default async function DashboardBookingsPage({
                             <div className="flex items-end">
                               <button
                                 type="submit"
-                                className={`h-14 w-full rounded-2xl border px-5 text-sm font-bold transition ${theme.primaryButton}`}
+                                className={`h-14 w-full rounded-full border px-5 text-sm font-bold transition ${theme.primaryButton}`}
                               >
                                 Reagendar
                               </button>
@@ -785,7 +785,7 @@ export default async function DashboardBookingsPage({
                               href={rescheduleWhatsappUrl}
                               target="_blank"
                               rel="noreferrer"
-                              className={`mt-4 flex min-h-12 items-center justify-center rounded-2xl border px-4 py-3 text-center text-sm font-semibold transition ${theme.secondaryButton}`}
+                              className={`mt-4 flex min-h-12 items-center justify-center rounded-full border px-4 py-3 text-center text-sm font-semibold transition ${theme.secondaryButton}`}
                             >
                               Avisar cliente no WhatsApp após reagendar
                             </a>
@@ -794,7 +794,7 @@ export default async function DashboardBookingsPage({
                       </div>
 
                       <div className="flex flex-col justify-between gap-5">
-                        <div className={`rounded-2xl border p-4 ${theme.panelSoft}`}>
+                        <div className={`rounded-[1.5rem] border p-4 ${theme.panelSoft}`}>
                           <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
                             Contacto rápido
                           </p>
@@ -809,18 +809,18 @@ export default async function DashboardBookingsPage({
                               href={whatsappUrl}
                               target="_blank"
                               rel="noreferrer"
-                              className={`mt-4 flex min-h-12 items-center justify-center rounded-2xl border px-4 py-3 text-center text-sm font-semibold transition ${theme.primaryButton}`}
+                              className={`mt-4 flex min-h-12 items-center justify-center rounded-full border px-4 py-3 text-center text-sm font-semibold transition ${theme.primaryButton}`}
                             >
                               Enviar WhatsApp
                             </a>
                           ) : (
-                            <p className={`mt-4 rounded-2xl border px-4 py-3 text-center text-sm ${theme.badge}`}>
+                            <p className={`mt-4 rounded-full border px-4 py-3 text-center text-sm ${theme.badge}`}>
                               Cliente sem telefone.
                             </p>
                           )}
                         </div>
 
-                        <div className={`rounded-2xl border p-4 ${theme.panelSoft}`}>
+                        <div className={`rounded-[1.5rem] border p-4 ${theme.panelSoft}`}>
                           <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
                             Estado
                           </p>
@@ -856,14 +856,14 @@ export default async function DashboardBookingsPage({
 
                             <button
                               type="submit"
-                              className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${theme.secondaryButton}`}
+                              className={`rounded-full border px-4 py-3 text-sm font-semibold transition ${theme.secondaryButton}`}
                             >
                               Atualizar estado
                             </button>
                           </form>
                         </div>
 
-                        <div className={`rounded-2xl border p-4 ${theme.panelSoft}`}>
+                        <div className={`rounded-[1.5rem] border p-4 ${theme.panelSoft}`}>
                           <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
                             Detalhes
                           </p>
@@ -889,7 +889,7 @@ export default async function DashboardBookingsPage({
                               <div>
                                 <span>Notas</span>
 
-                                <p className={`mt-2 rounded-2xl border p-3 ${theme.badge}`}>
+                                <p className={`mt-2 rounded-[1.2rem] border p-3 ${theme.badge}`}>
                                   {booking.notes}
                                 </p>
                               </div>

@@ -187,7 +187,13 @@ export default async function DashboardPage() {
 
   const nextBookings = upcomingBookings.slice(0, 5)
 
-  const businessActions = [
+  const businessActions: Array<{
+    title: string
+    description: string
+    href: string
+    label: string
+    highlight?: boolean
+  }> = [
     {
       title: "Marcações",
       description:
