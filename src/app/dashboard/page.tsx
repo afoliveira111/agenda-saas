@@ -194,7 +194,6 @@ export default async function DashboardPage() {
         "Ver agenda, reagendar, alterar estado e contactar clientes.",
       href: "/dashboard/bookings",
       label: "Abrir marcações",
-      highlight: true,
     },
     {
       title: "Clientes",
