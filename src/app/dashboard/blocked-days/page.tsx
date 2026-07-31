@@ -49,14 +49,14 @@ function getFeedbackClasses(type: "error" | "success") {
 
 function getInputClasses(theme: string) {
   if (theme === "WHITE") {
-    return "mt-2 w-full rounded-2xl border border-zinc-300 bg-white px-4 py-4 text-zinc-950 outline-none transition placeholder:text-zinc-400 focus:border-zinc-950"
+    return "mt-2 w-full rounded-[1.2rem] border border-zinc-300 bg-white px-4 py-4 text-zinc-950 outline-none transition placeholder:text-zinc-400 focus:border-zinc-950"
   }
 
   if (theme === "NUDE") {
-    return "mt-2 w-full rounded-2xl border border-[#d8beb0] bg-white px-4 py-4 text-[#2b211c] outline-none transition placeholder:text-[#9d8576] focus:border-[#2b211c]"
+    return "mt-2 w-full rounded-[1.2rem] border border-[#d8beb0] bg-white px-4 py-4 text-[#2b211c] outline-none transition placeholder:text-[#9d8576] focus:border-[#2b211c]"
   }
 
-  return "mt-2 w-full rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-4 text-white outline-none transition placeholder:text-zinc-700 focus:border-white"
+  return "mt-2 w-full rounded-[1.2rem] border border-zinc-800 bg-zinc-950 px-4 py-4 text-white outline-none transition placeholder:text-zinc-700 focus:border-white"
 }
 
 export default async function DashboardBlockedDaysPage({
@@ -95,8 +95,8 @@ export default async function DashboardBlockedDaysPage({
 
   return (
     <main className={`min-h-screen ${theme.page}`}>
-      <section className="mx-auto max-w-7xl px-6 py-10">
-        <div className={`rounded-[2rem] border p-8 shadow-2xl ${theme.hero}`}>
+      <section className="mx-auto max-w-[88rem] px-5 py-8 sm:px-6 lg:py-10">
+        <div className={`rounded-[2.3rem] border p-8 shadow-2xl lg:p-10 ${theme.hero}`}>
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className={`text-sm uppercase tracking-[0.3em] ${theme.subtle}`}>
@@ -118,14 +118,14 @@ export default async function DashboardBlockedDaysPage({
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/dashboard/settings/hours"
-                className={`rounded-2xl border px-5 py-3 text-center font-semibold transition ${theme.secondaryButton}`}
+                className={`rounded-full border px-5 py-3 text-center font-semibold transition ${theme.secondaryButton}`}
               >
                 Ver horários
               </Link>
 
               <Link
                 href={`/book/${business.slug}`}
-                className={`rounded-2xl border px-5 py-3 text-center font-semibold transition ${theme.primaryButton}`}
+                className={`rounded-full border px-5 py-3 text-center font-semibold transition ${theme.primaryButton}`}
               >
                 Abrir página pública
               </Link>
@@ -133,7 +133,7 @@ export default async function DashboardBlockedDaysPage({
           </div>
 
           <div className="mt-8 grid gap-4 md:grid-cols-3">
-            <div className={`rounded-3xl border p-5 ${theme.card}`}>
+            <div className={`rounded-[1.7rem] border p-5 ${theme.card}`}>
               <p className={`text-sm ${theme.muted}`}>Bloqueios futuros</p>
 
               <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
@@ -141,7 +141,7 @@ export default async function DashboardBlockedDaysPage({
               </p>
             </div>
 
-            <div className={`rounded-3xl border p-5 ${theme.card}`}>
+            <div className={`rounded-[1.7rem] border p-5 ${theme.card}`}>
               <p className={`text-sm ${theme.muted}`}>Link público</p>
 
               <p className={`mt-2 truncate text-lg font-semibold ${theme.title}`}>
@@ -149,7 +149,7 @@ export default async function DashboardBlockedDaysPage({
               </p>
             </div>
 
-            <div className={`rounded-3xl border p-5 ${theme.card}`}>
+            <div className={`rounded-[1.7rem] border p-5 ${theme.card}`}>
               <p className={`text-sm ${theme.muted}`}>Negócio</p>
 
               <p className={`mt-2 truncate text-lg font-semibold ${theme.title}`}>
@@ -172,7 +172,7 @@ export default async function DashboardBlockedDaysPage({
         )}
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[420px_1fr]">
-          <div className={`rounded-[2rem] border p-6 shadow-2xl ${theme.panel}`}>
+          <div className={`rounded-[2.2rem] border p-6 shadow-2xl ${theme.panel}`}>
             <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
               Novo bloqueio
             </p>
@@ -235,14 +235,14 @@ export default async function DashboardBlockedDaysPage({
 
               <button
                 type="submit"
-                className={`mt-2 rounded-2xl border px-5 py-4 font-semibold transition ${theme.primaryButton}`}
+                className={`mt-2 rounded-full border px-5 py-4 font-semibold transition ${theme.primaryButton}`}
               >
                 Criar bloqueio
               </button>
             </form>
           </div>
 
-          <div className={`rounded-[2rem] border p-4 shadow-2xl ${theme.panel}`}>
+          <div className={`rounded-[2.2rem] border p-5 shadow-2xl ${theme.panel}`}>
             <div className={`border-b px-2 pb-4 ${theme.line}`}>
               <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
                 Datas indisponíveis
@@ -271,7 +271,7 @@ export default async function DashboardBlockedDaysPage({
                 {business.blockedDays.map((blockedDay) => (
                   <div
                     key={blockedDay.id}
-                    className={`rounded-3xl border p-5 ${theme.card}`}
+                    className={`rounded-[1.7rem] border p-5 ${theme.card}`}
                   >
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                       <div>
@@ -297,7 +297,7 @@ export default async function DashboardBlockedDaysPage({
 
                         <button
                           type="submit"
-                          className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${theme.secondaryButton}`}
+                          className={`rounded-full border px-4 py-3 text-sm font-semibold transition ${theme.secondaryButton}`}
                         >
                           Remover bloqueio
                         </button>

@@ -104,14 +104,14 @@ function getFeedbackClasses(type: "error" | "success") {
 
 function getSelectClasses(theme: string) {
   if (theme === "WHITE") {
-    return "mt-2 w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-zinc-950 outline-none transition focus:border-zinc-950"
+    return "mt-2 w-full rounded-[1.2rem] border border-zinc-300 bg-white px-4 py-3 text-zinc-950 outline-none transition focus:border-zinc-950"
   }
 
   if (theme === "NUDE") {
-    return "mt-2 w-full rounded-2xl border border-[#d8beb0] bg-white px-4 py-3 text-[#2b211c] outline-none transition focus:border-[#2b211c]"
+    return "mt-2 w-full rounded-[1.2rem] border border-[#d8beb0] bg-white px-4 py-3 text-[#2b211c] outline-none transition focus:border-[#2b211c]"
   }
 
-  return "mt-2 w-full rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-white"
+  return "mt-2 w-full rounded-[1.2rem] border border-zinc-800 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-white"
 }
 
 function getTimeOptionsWithCurrentValue(currentValue: string) {
@@ -181,8 +181,8 @@ export default async function DashboardHoursPage({
 
   return (
     <main className={`min-h-screen ${theme.page}`}>
-      <section className="mx-auto max-w-6xl px-6 py-10">
-        <div className={`rounded-[2rem] border p-8 shadow-2xl ${theme.hero}`}>
+      <section className="mx-auto max-w-[88rem] px-5 py-8 sm:px-6 lg:py-10">
+        <div className={`rounded-[2.3rem] border p-8 shadow-2xl lg:p-10 ${theme.hero}`}>
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className={`text-sm uppercase tracking-[0.3em] ${theme.subtle}`}>
@@ -204,14 +204,14 @@ export default async function DashboardHoursPage({
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/dashboard/services"
-                className={`rounded-2xl border px-5 py-3 text-center font-semibold transition ${theme.secondaryButton}`}
+                className={`rounded-full border px-5 py-3 text-center font-semibold transition ${theme.secondaryButton}`}
               >
                 Ver serviços
               </Link>
 
               <Link
                 href={`/book/${business.slug}`}
-                className={`rounded-2xl border px-5 py-3 text-center font-semibold transition ${theme.primaryButton}`}
+                className={`rounded-full border px-5 py-3 text-center font-semibold transition ${theme.primaryButton}`}
               >
                 Abrir página pública
               </Link>
@@ -219,7 +219,7 @@ export default async function DashboardHoursPage({
           </div>
 
           <div className="mt-8 grid gap-4 md:grid-cols-3">
-            <div className={`rounded-3xl border p-5 ${theme.card}`}>
+            <div className={`rounded-[1.7rem] border p-5 ${theme.card}`}>
               <p className={`text-sm ${theme.muted}`}>Dias ativos</p>
 
               <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
@@ -227,7 +227,7 @@ export default async function DashboardHoursPage({
               </p>
             </div>
 
-            <div className={`rounded-3xl border p-5 ${theme.card}`}>
+            <div className={`rounded-[1.7rem] border p-5 ${theme.card}`}>
               <p className={`text-sm ${theme.muted}`}>Agenda de hoje</p>
 
               <p className={`mt-2 text-lg font-semibold ${theme.title}`}>
@@ -235,7 +235,7 @@ export default async function DashboardHoursPage({
               </p>
             </div>
 
-            <div className={`rounded-3xl border p-5 ${theme.card}`}>
+            <div className={`rounded-[1.7rem] border p-5 ${theme.card}`}>
               <p className={`text-sm ${theme.muted}`}>Negócio</p>
 
               <p className={`mt-2 truncate text-lg font-semibold ${theme.title}`}>
@@ -257,7 +257,7 @@ export default async function DashboardHoursPage({
           </div>
         )}
 
-        <div className={`mt-8 rounded-[2rem] border p-6 shadow-2xl ${theme.panel}`}>
+        <div className={`mt-8 rounded-[2.2rem] border p-6 shadow-2xl ${theme.panel}`}>
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
@@ -286,7 +286,7 @@ export default async function DashboardHoursPage({
               <form action={unblockTodayAction}>
                 <button
                   type="submit"
-                  className={`w-full rounded-2xl border px-5 py-4 font-semibold transition lg:w-auto ${theme.primaryButton}`}
+                  className={`w-full rounded-full border px-5 py-4 font-semibold transition lg:w-auto ${theme.primaryButton}`}
                 >
                   Reabrir agenda de hoje
                 </button>
@@ -295,7 +295,7 @@ export default async function DashboardHoursPage({
               <form action={blockTodayAction}>
                 <button
                   type="submit"
-                  className={`w-full rounded-2xl border px-5 py-4 font-semibold transition lg:w-auto ${theme.secondaryButton}`}
+                  className={`w-full rounded-full border px-5 py-4 font-semibold transition lg:w-auto ${theme.secondaryButton}`}
                 >
                   Bloquear agenda de hoje
                 </button>
@@ -306,7 +306,7 @@ export default async function DashboardHoursPage({
 
         <form
           action={updateWorkHoursAction}
-          className={`mt-8 rounded-[2rem] border p-6 shadow-2xl ${theme.panel}`}
+          className={`mt-8 rounded-[2.2rem] border p-6 shadow-2xl ${theme.panel}`}
         >
           <div
             className={`flex flex-col gap-4 border-b pb-6 sm:flex-row sm:items-end sm:justify-between ${theme.line}`}
@@ -328,7 +328,7 @@ export default async function DashboardHoursPage({
 
             <button
               type="submit"
-              className={`rounded-2xl border px-5 py-4 font-semibold transition ${theme.primaryButton}`}
+              className={`rounded-full border px-5 py-4 font-semibold transition ${theme.primaryButton}`}
             >
               Guardar horários
             </button>
@@ -351,7 +351,7 @@ export default async function DashboardHoursPage({
               return (
                 <div
                   key={day.value}
-                  className={`grid gap-4 rounded-3xl border p-5 md:grid-cols-[1fr_180px_180px] ${theme.card}`}
+                  className={`grid gap-4 rounded-[1.7rem] border p-5 md:grid-cols-[1fr_180px_180px] ${theme.card}`}
                 >
                   <label className="flex cursor-pointer items-center gap-4">
                     <input
