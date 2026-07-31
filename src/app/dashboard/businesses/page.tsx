@@ -1,4 +1,9 @@
+import { cookies } from "next/headers"
 import Link from "next/link"
+import {
+  getAdminThemeClasses,
+  normalizeAdminTheme,
+} from "@/lib/admin-theme"
 import { normalizeBusinessTheme } from "@/lib/business-theme"
 import { getCurrentBusinessSlug } from "@/lib/current-business"
 import { prisma } from "@/lib/prisma"
@@ -44,20 +49,20 @@ function formatBusinessTheme(theme: string | null | undefined) {
   return themeMap[normalizedTheme]
 }
 
-function inputClasses() {
-  return "mt-2 w-full rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-4 text-white outline-none transition placeholder:text-zinc-700 focus:border-white"
+function inputClasses(theme: ReturnType<typeof getAdminThemeClasses>) {
+  return `mt-2 w-full rounded-[1.2rem] border px-4 py-4 outline-none transition ${theme.input}`
 }
 
-function compactInputClasses() {
-  return "mt-2 w-full rounded-2xl border border-zinc-800 bg-black px-4 py-3 text-white outline-none transition placeholder:text-zinc-700 focus:border-white"
+function compactInputClasses(theme: ReturnType<typeof getAdminThemeClasses>) {
+  return `mt-2 w-full rounded-[1.2rem] border px-4 py-3 outline-none transition ${theme.input}`
 }
 
-function selectClasses() {
-  return "mt-2 w-full rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-4 text-white outline-none transition focus:border-white"
+function selectClasses(theme: ReturnType<typeof getAdminThemeClasses>) {
+  return `mt-2 w-full rounded-[1.2rem] border px-4 py-4 outline-none transition ${theme.input}`
 }
 
-function compactSelectClasses() {
-  return "mt-2 w-full rounded-2xl border border-zinc-800 bg-black px-4 py-3 text-white outline-none transition focus:border-white"
+function compactSelectClasses(theme: ReturnType<typeof getAdminThemeClasses>) {
+  return `mt-2 w-full rounded-[1.2rem] border px-4 py-3 outline-none transition ${theme.input}`
 }
 
 function getFeedbackClasses(type: "error" | "success") {
@@ -69,10 +74,12 @@ function getFeedbackClasses(type: "error" | "success") {
 }
 
 function ThemeSelect({
+  theme,
   name = "theme",
   defaultValue = "LUXURY",
   compact = false,
 }: {
+  theme: ReturnType<typeof getAdminThemeClasses>
   name?: string
   defaultValue?: string
   compact?: boolean
@@ -82,7 +89,7 @@ function ThemeSelect({
       name={name}
       required
       defaultValue={normalizeBusinessTheme(defaultValue)}
-      className={compact ? compactSelectClasses() : selectClasses()}
+      className={compact ? compactSelectClasses(theme) : selectClasses(theme)}
     >
       <option value="LUXURY">Premium</option>
       <option value="WHITE">Branco</option>
@@ -108,6 +115,12 @@ export default async function DashboardBusinessesPage({
     theme: normalizeBusinessTheme(search.theme ?? "LUXURY"),
     createExampleService: search.createExampleService ?? "true",
   }
+
+  const cookieStore = await cookies()
+  const currentAdminTheme = normalizeAdminTheme(
+    cookieStore.get("agenda_saas_admin_theme")?.value,
+  )
+  const theme = getAdminThemeClasses(currentAdminTheme)
 
   const currentDashboardSlug = await getCurrentBusinessSlug()
 
@@ -145,20 +158,20 @@ export default async function DashboardBusinessesPage({
   )
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white">
-      <section className="mx-auto max-w-7xl px-6 py-10">
-        <div className="rounded-[2rem] border border-zinc-800 bg-gradient-to-br from-zinc-900 via-zinc-950 to-black p-8 shadow-2xl">
+    <main className={`min-h-screen ${theme.page}`}>
+      <section className="mx-auto max-w-[88rem] px-5 py-8 sm:px-6 lg:py-10">
+        <div className={`rounded-[2.3rem] border p-8 shadow-2xl lg:p-10 ${theme.hero}`}>
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">
+              <p className={`text-sm uppercase tracking-[0.3em] ${theme.subtle}`}>
                 Admin
               </p>
 
-              <h1 className="mt-3 text-4xl font-bold tracking-tight text-white md:text-5xl">
+              <h1 className={`mt-3 text-4xl font-bold tracking-tight md:text-5xl ${theme.title}`}>
                 Gerir negócios
               </h1>
 
-              <p className="mt-4 max-w-2xl text-zinc-400">
+              <p className={`mt-4 max-w-2xl ${theme.muted}`}>
                 Crie, edite e selecione os negócios da plataforma. Cada negócio
                 tem o próprio link público, tema, serviços, horários, clientes e
                 marcações.
@@ -168,14 +181,14 @@ export default async function DashboardBusinessesPage({
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/admin"
-                className="rounded-2xl border border-zinc-700 px-5 py-3 text-center font-semibold text-zinc-300 transition hover:border-white hover:text-white"
+                className={`rounded-full border px-5 py-3 text-center font-semibold transition ${theme.secondaryButton}`}
               >
                 Voltar ao admin
               </Link>
 
               <Link
                 href="/dashboard"
-                className="rounded-2xl border border-white bg-white px-5 py-3 text-center font-semibold text-zinc-950 transition hover:bg-zinc-200"
+                className={`rounded-full border px-5 py-3 text-center font-semibold transition ${theme.primaryButton}`}
               >
                 Abrir painel
               </Link>
@@ -183,30 +196,30 @@ export default async function DashboardBusinessesPage({
           </div>
 
           <div className="mt-8 grid gap-4 md:grid-cols-4">
-            <div className="rounded-3xl border border-zinc-800 bg-black/40 p-5">
-              <p className="text-sm text-zinc-500">Total de negócios</p>
+            <div className={`rounded-[1.7rem] border p-5 ${theme.card}`}>
+              <p className={`text-sm ${theme.muted}`}>Total de negócios</p>
 
               <p className="mt-2 text-3xl font-bold">{businesses.length}</p>
             </div>
 
-            <div className="rounded-3xl border border-zinc-800 bg-black/40 p-5">
-              <p className="text-sm text-zinc-500">Painel atual</p>
+            <div className={`rounded-[1.7rem] border p-5 ${theme.card}`}>
+              <p className={`text-sm ${theme.muted}`}>Painel atual</p>
 
               <p className="mt-2 truncate text-lg font-semibold">
                 {currentBusiness?.name ?? currentDashboardSlug}
               </p>
             </div>
 
-            <div className="rounded-3xl border border-zinc-800 bg-black/40 p-5">
-              <p className="text-sm text-zinc-500">Link atual</p>
+            <div className={`rounded-[1.7rem] border p-5 ${theme.card}`}>
+              <p className={`text-sm ${theme.muted}`}>Link atual</p>
 
               <p className="mt-2 truncate text-lg font-semibold">
                 /book/{currentBusiness?.slug ?? currentDashboardSlug}
               </p>
             </div>
 
-            <div className="rounded-3xl border border-zinc-800 bg-black/40 p-5">
-              <p className="text-sm text-zinc-500">Modo</p>
+            <div className={`rounded-[1.7rem] border p-5 ${theme.card}`}>
+              <p className={`text-sm ${theme.muted}`}>Modo</p>
 
               <p className="mt-2 text-lg font-semibold">Multi-negócio ativo</p>
             </div>
@@ -226,14 +239,14 @@ export default async function DashboardBusinessesPage({
         )}
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[420px_1fr]">
-          <div className="rounded-[2rem] border border-zinc-800 bg-black p-6 shadow-2xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-zinc-600">
+          <div className={`rounded-[2.2rem] border p-6 shadow-2xl ${theme.panel}`}>
+            <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
               Novo negócio
             </p>
 
             <h2 className="mt-3 text-2xl font-bold">Cadastrar negócio</h2>
 
-            <p className="mt-3 text-sm text-zinc-500">
+            <p className={`mt-3 text-sm ${theme.muted}`}>
               Crie um novo cliente da plataforma. Depois, em Utilizadores, pode
               criar o gerente e associar ao negócio.
             </p>
@@ -244,7 +257,7 @@ export default async function DashboardBusinessesPage({
               className="mt-6 grid gap-4"
             >
               <div>
-                <label className="text-sm font-medium text-zinc-300">
+                <label className={`text-sm font-medium ${theme.title}`}>
                   Nome do negócio
                 </label>
 
@@ -256,12 +269,12 @@ export default async function DashboardBusinessesPage({
                   maxLength={80}
                   defaultValue={formValues.name}
                   placeholder="Ex: Clínica Teste"
-                  className={inputClasses()}
+                  className={inputClasses(theme)}
                 />
               </div>
 
               <div>
-                <label className="text-sm font-medium text-zinc-300">
+                <label className={`text-sm font-medium ${theme.title}`}>
                   Slug público
                 </label>
 
@@ -271,29 +284,29 @@ export default async function DashboardBusinessesPage({
                   maxLength={60}
                   defaultValue={formValues.slug}
                   placeholder="clinica-teste"
-                  className={inputClasses()}
+                  className={inputClasses(theme)}
                 />
 
-                <p className="mt-2 text-xs text-zinc-600">
+                <p className={`mt-2 text-xs ${theme.subtle}`}>
                   Se deixar vazio, o sistema gera automaticamente a partir do
                   nome.
                 </p>
               </div>
 
               <div>
-                <label className="text-sm font-medium text-zinc-300">
+                <label className={`text-sm font-medium ${theme.title}`}>
                   Tema da página pública
                 </label>
 
-                <ThemeSelect defaultValue={formValues.theme} />
+                <ThemeSelect theme={theme} defaultValue={formValues.theme} />
 
-                <p className="mt-2 text-xs text-zinc-600">
+                <p className={`mt-2 text-xs ${theme.subtle}`}>
                   Pode alterar depois em qualquer momento.
                 </p>
               </div>
 
               <div>
-                <label className="text-sm font-medium text-zinc-300">
+                <label className={`text-sm font-medium ${theme.title}`}>
                   Telefone / WhatsApp
                 </label>
 
@@ -304,12 +317,12 @@ export default async function DashboardBusinessesPage({
                   maxLength={20}
                   defaultValue={formValues.phone}
                   placeholder="+351 912 345 678"
-                  className={inputClasses()}
+                  className={inputClasses(theme)}
                 />
               </div>
 
               <div>
-                <label className="text-sm font-medium text-zinc-300">
+                <label className={`text-sm font-medium ${theme.title}`}>
                   E-mail público
                 </label>
 
@@ -320,12 +333,12 @@ export default async function DashboardBusinessesPage({
                   maxLength={120}
                   defaultValue={formValues.email}
                   placeholder="contacto@clinica.pt"
-                  className={inputClasses()}
+                  className={inputClasses(theme)}
                 />
               </div>
 
               <div>
-                <label className="text-sm font-medium text-zinc-300">
+                <label className={`text-sm font-medium ${theme.title}`}>
                   E-mail de notificação
                 </label>
 
@@ -336,16 +349,16 @@ export default async function DashboardBusinessesPage({
                   maxLength={120}
                   defaultValue={formValues.notificationEmail}
                   placeholder="recepcao@clinica.pt"
-                  className={inputClasses()}
+                  className={inputClasses(theme)}
                 />
 
-                <p className="mt-2 text-xs text-zinc-600">
+                <p className={`mt-2 text-xs ${theme.subtle}`}>
                   Este e-mail recebe os avisos internos de novas marcações.
                 </p>
               </div>
 
               <div>
-                <label className="text-sm font-medium text-zinc-300">
+                <label className={`text-sm font-medium ${theme.title}`}>
                   Morada
                 </label>
 
@@ -355,12 +368,12 @@ export default async function DashboardBusinessesPage({
                   maxLength={160}
                   defaultValue={formValues.address}
                   placeholder="Rua, cidade, país"
-                  className={inputClasses()}
+                  className={inputClasses(theme)}
                 />
               </div>
 
               <div>
-                <label className="text-sm font-medium text-zinc-300">
+                <label className={`text-sm font-medium ${theme.title}`}>
                   Descrição
                 </label>
 
@@ -370,7 +383,7 @@ export default async function DashboardBusinessesPage({
                   maxLength={300}
                   defaultValue={formValues.description}
                   placeholder="Breve descrição do negócio."
-                  className={`${inputClasses()} resize-none`}
+                  className={`${inputClasses(theme)} resize-none`}
                 />
               </div>
 
@@ -397,16 +410,16 @@ export default async function DashboardBusinessesPage({
 
               <button
                 type="submit"
-                className="mt-2 rounded-2xl border border-white bg-white px-5 py-4 font-semibold text-zinc-950 transition hover:bg-zinc-200"
+                className={`mt-2 rounded-full border px-5 py-4 font-semibold transition ${theme.primaryButton}`}
               >
                 Criar negócio
               </button>
             </form>
           </div>
 
-          <div className="rounded-[2rem] border border-zinc-800 bg-zinc-950 p-4 shadow-2xl">
-            <div className="border-b border-zinc-800 px-2 pb-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-zinc-600">
+          <div className={`rounded-[2.2rem] border p-5 shadow-2xl ${theme.panel}`}>
+            <div className={`border-b px-2 pb-4 ${theme.line}`}>
+              <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
                 Cadastrados
               </p>
 
@@ -414,14 +427,14 @@ export default async function DashboardBusinessesPage({
                 Negócios da plataforma
               </h2>
 
-              <p className="mt-2 text-sm text-zinc-500">
+              <p className={`mt-2 text-sm ${theme.muted}`}>
                 Edite os dados principais e escolha qual negócio fica ativo no
                 painel.
               </p>
             </div>
 
             {businesses.length === 0 ? (
-              <div className="mt-4 rounded-3xl border border-zinc-800 bg-black p-10 text-center text-zinc-500">
+              <div className={`mt-4 rounded-[1.7rem] border p-10 text-center ${theme.card}`}>
                 Nenhum negócio cadastrado.
               </div>
             ) : (
@@ -433,41 +446,41 @@ export default async function DashboardBusinessesPage({
                   return (
                     <div
                       key={business.id}
-                      className="rounded-3xl border border-zinc-800 bg-black p-5"
+                      className={`rounded-[1.8rem] border p-5 ${theme.card}`}
                     >
                       <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
                         <div>
                           <div className="flex flex-wrap items-center gap-3">
                             {isCurrentDashboardBusiness && (
-                              <span className="rounded-full border border-white bg-white px-3 py-1 text-xs font-semibold text-zinc-950">
+                              <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${theme.actionSelected}`}>
                                 Painel atual
                               </span>
                             )}
 
-                            <span className="rounded-full border border-zinc-800 bg-zinc-950 px-3 py-1 text-xs font-semibold text-zinc-500">
+                            <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${theme.badge}`}>
                               /book/{business.slug}
                             </span>
 
-                            <span className="rounded-full border border-zinc-800 bg-zinc-950 px-3 py-1 text-xs font-semibold text-zinc-500">
+                            <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${theme.badge}`}>
                               Tema: {formatBusinessTheme(business.theme)}
                             </span>
                           </div>
 
-                          <h3 className="mt-4 text-2xl font-bold text-white">
+                          <h3 className={`mt-4 text-2xl font-bold ${theme.title}`}>
                             {business.name}
                           </h3>
 
-                          <div className="mt-3 grid gap-2 text-sm text-zinc-500">
+                          <div className={`mt-3 grid gap-2 text-sm ${theme.muted}`}>
                             <p>
                               Criado em:{" "}
-                              <span className="text-zinc-300">
+                              <span className={theme.title}>
                                 {formatDate(business.createdAt)}
                               </span>
                             </p>
 
                             <p>
                               Gerentes associados:{" "}
-                              <span className="text-zinc-300">
+                              <span className={theme.title}>
                                 {business.users.length > 0
                                   ? business.users
                                       .map((user) => user.name)
@@ -478,21 +491,21 @@ export default async function DashboardBusinessesPage({
 
                             <p>
                               E-mail público:{" "}
-                              <span className="text-zinc-300">
+                              <span className={theme.title}>
                                 {business.email || "Não definido"}
                               </span>
                             </p>
 
                             <p>
                               E-mail de notificação:{" "}
-                              <span className="text-zinc-300">
+                              <span className={theme.title}>
                                 {business.notificationEmail || "Não definido"}
                               </span>
                             </p>
 
                             <p>
                               Telefone:{" "}
-                              <span className="text-zinc-300">
+                              <span className={theme.title}>
                                 {business.phone || "Não definido"}
                               </span>
                             </p>
@@ -500,7 +513,7 @@ export default async function DashboardBusinessesPage({
                             {business.address && (
                               <p>
                                 Morada:{" "}
-                                <span className="text-zinc-300">
+                                <span className={theme.title}>
                                   {business.address}
                                 </span>
                               </p>
@@ -508,7 +521,7 @@ export default async function DashboardBusinessesPage({
                           </div>
 
                           <div className="mt-5 grid gap-3 sm:grid-cols-5">
-                            <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-4">
+                            <div className={`rounded-[1.2rem] border p-4 ${theme.panelSoft}`}>
                               <p className="text-xs text-zinc-600">Serviços</p>
 
                               <p className="mt-1 text-xl font-bold">
@@ -516,7 +529,7 @@ export default async function DashboardBusinessesPage({
                               </p>
                             </div>
 
-                            <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-4">
+                            <div className={`rounded-[1.2rem] border p-4 ${theme.panelSoft}`}>
                               <p className="text-xs text-zinc-600">
                                 Marcações
                               </p>
@@ -526,7 +539,7 @@ export default async function DashboardBusinessesPage({
                               </p>
                             </div>
 
-                            <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-4">
+                            <div className={`rounded-[1.2rem] border p-4 ${theme.panelSoft}`}>
                               <p className="text-xs text-zinc-600">Clientes</p>
 
                               <p className="mt-1 text-xl font-bold">
@@ -534,7 +547,7 @@ export default async function DashboardBusinessesPage({
                               </p>
                             </div>
 
-                            <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-4">
+                            <div className={`rounded-[1.2rem] border p-4 ${theme.panelSoft}`}>
                               <p className="text-xs text-zinc-600">
                                 Dias ativos
                               </p>
@@ -544,7 +557,7 @@ export default async function DashboardBusinessesPage({
                               </p>
                             </div>
 
-                            <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-4">
+                            <div className={`rounded-[1.2rem] border p-4 ${theme.panelSoft}`}>
                               <p className="text-xs text-zinc-600">Gerentes</p>
 
                               <p className="mt-1 text-xl font-bold">
@@ -557,7 +570,7 @@ export default async function DashboardBusinessesPage({
                         <div className="flex flex-col gap-3 xl:min-w-60">
                           <Link
                             href={`/book/${business.slug}`}
-                            className="rounded-2xl border border-white bg-white px-5 py-3 text-center text-sm font-semibold text-zinc-950 transition hover:bg-zinc-200"
+                            className={`rounded-full border px-5 py-3 text-center text-sm font-semibold transition ${theme.primaryButton}`}
                           >
                             Abrir página pública
                           </Link>
@@ -565,7 +578,7 @@ export default async function DashboardBusinessesPage({
                           {isCurrentDashboardBusiness ? (
                             <Link
                               href="/dashboard"
-                              className="rounded-2xl border border-zinc-700 px-5 py-3 text-center text-sm font-semibold text-zinc-300 transition hover:border-white hover:text-white"
+                              className={`rounded-full border px-5 py-3 text-center text-sm font-semibold transition ${theme.secondaryButton}`}
                             >
                               Gerir no painel
                             </Link>
@@ -579,7 +592,7 @@ export default async function DashboardBusinessesPage({
 
                               <button
                                 type="submit"
-                                className="w-full rounded-2xl border border-zinc-700 px-5 py-3 text-center text-sm font-semibold text-zinc-300 transition hover:border-white hover:text-white"
+                                className={`w-full rounded-full border px-5 py-3 text-center text-sm font-semibold transition ${theme.secondaryButton}`}
                               >
                                 Usar no painel
                               </button>
@@ -588,7 +601,7 @@ export default async function DashboardBusinessesPage({
 
                           <Link
                             href="/admin/users"
-                            className="rounded-2xl border border-zinc-700 px-5 py-3 text-center text-sm font-semibold text-zinc-300 transition hover:border-white hover:text-white"
+                            className={`rounded-full border px-5 py-3 text-center text-sm font-semibold transition ${theme.secondaryButton}`}
                           >
                             Gerir gerente
                           </Link>
@@ -598,7 +611,7 @@ export default async function DashboardBusinessesPage({
                       <form
                         action={updateBusinessAction}
                         noValidate
-                        className="mt-6 rounded-3xl border border-zinc-800 bg-zinc-950 p-5"
+                        className={`mt-6 rounded-[1.7rem] border p-5 ${theme.panelSoft}`}
                       >
                         <input
                           type="hidden"
@@ -606,13 +619,13 @@ export default async function DashboardBusinessesPage({
                           value={business.id}
                         />
 
-                        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-zinc-600">
+                        <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
                           Editar negócio
                         </p>
 
                         <div className="mt-4 grid gap-4 lg:grid-cols-2">
                           <div>
-                            <label className="text-sm font-medium text-zinc-300">
+                            <label className={`text-sm font-medium ${theme.title}`}>
                               Nome
                             </label>
 
@@ -623,12 +636,12 @@ export default async function DashboardBusinessesPage({
                               minLength={2}
                               maxLength={80}
                               defaultValue={business.name}
-                              className={compactInputClasses()}
+                              className={compactInputClasses(theme)}
                             />
                           </div>
 
                           <div>
-                            <label className="text-sm font-medium text-zinc-300">
+                            <label className={`text-sm font-medium ${theme.title}`}>
                               Slug público
                             </label>
 
@@ -638,23 +651,24 @@ export default async function DashboardBusinessesPage({
                               required
                               maxLength={60}
                               defaultValue={business.slug}
-                              className={compactInputClasses()}
+                              className={compactInputClasses(theme)}
                             />
                           </div>
 
                           <div>
-                            <label className="text-sm font-medium text-zinc-300">
+                            <label className={`text-sm font-medium ${theme.title}`}>
                               Tema
                             </label>
 
                             <ThemeSelect
+                              theme={theme}
                               defaultValue={business.theme}
                               compact
                             />
                           </div>
 
                           <div>
-                            <label className="text-sm font-medium text-zinc-300">
+                            <label className={`text-sm font-medium ${theme.title}`}>
                               Telefone / WhatsApp
                             </label>
 
@@ -664,12 +678,12 @@ export default async function DashboardBusinessesPage({
                               minLength={7}
                               maxLength={20}
                               defaultValue={business.phone ?? ""}
-                              className={compactInputClasses()}
+                              className={compactInputClasses(theme)}
                             />
                           </div>
 
                           <div>
-                            <label className="text-sm font-medium text-zinc-300">
+                            <label className={`text-sm font-medium ${theme.title}`}>
                               E-mail público
                             </label>
 
@@ -679,12 +693,12 @@ export default async function DashboardBusinessesPage({
                               inputMode="email"
                               maxLength={120}
                               defaultValue={business.email ?? ""}
-                              className={compactInputClasses()}
+                              className={compactInputClasses(theme)}
                             />
                           </div>
 
                           <div>
-                            <label className="text-sm font-medium text-zinc-300">
+                            <label className={`text-sm font-medium ${theme.title}`}>
                               E-mail de notificação
                             </label>
 
@@ -694,12 +708,12 @@ export default async function DashboardBusinessesPage({
                               inputMode="email"
                               maxLength={120}
                               defaultValue={business.notificationEmail ?? ""}
-                              className={compactInputClasses()}
+                              className={compactInputClasses(theme)}
                             />
                           </div>
 
                           <div className="lg:col-span-2">
-                            <label className="text-sm font-medium text-zinc-300">
+                            <label className={`text-sm font-medium ${theme.title}`}>
                               Morada
                             </label>
 
@@ -708,12 +722,12 @@ export default async function DashboardBusinessesPage({
                               name="address"
                               maxLength={160}
                               defaultValue={business.address ?? ""}
-                              className={compactInputClasses()}
+                              className={compactInputClasses(theme)}
                             />
                           </div>
 
                           <div className="lg:col-span-2">
-                            <label className="text-sm font-medium text-zinc-300">
+                            <label className={`text-sm font-medium ${theme.title}`}>
                               Descrição
                             </label>
 
@@ -722,14 +736,14 @@ export default async function DashboardBusinessesPage({
                               rows={3}
                               maxLength={300}
                               defaultValue={business.description ?? ""}
-                              className={`${compactInputClasses()} resize-none`}
+                              className={`${compactInputClasses(theme)} resize-none`}
                             />
                           </div>
                         </div>
 
                         <button
                           type="submit"
-                          className="mt-5 rounded-2xl border border-zinc-700 px-5 py-3 font-semibold text-zinc-300 transition hover:border-white hover:text-white"
+                          className={`mt-5 rounded-full border px-5 py-3 font-semibold transition ${theme.secondaryButton}`}
                         >
                           Guardar alterações do negócio
                         </button>
