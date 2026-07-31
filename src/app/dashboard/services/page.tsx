@@ -70,50 +70,50 @@ function getFeedbackClasses(type: "error" | "success") {
 
 function getInputClasses(theme: string) {
   if (theme === "WHITE") {
-    return "mt-2 w-full rounded-2xl border border-zinc-300 bg-white px-4 py-4 text-zinc-950 outline-none transition placeholder:text-zinc-400 focus:border-zinc-950"
+    return "mt-2 w-full rounded-[1.2rem] border border-zinc-300 bg-white px-4 py-4 text-zinc-950 outline-none transition placeholder:text-zinc-400 focus:border-zinc-950"
   }
 
   if (theme === "NUDE") {
-    return "mt-2 w-full rounded-2xl border border-[#d8beb0] bg-white px-4 py-4 text-[#2b211c] outline-none transition placeholder:text-[#9d8576] focus:border-[#2b211c]"
+    return "mt-2 w-full rounded-[1.2rem] border border-[#d8beb0] bg-white px-4 py-4 text-[#2b211c] outline-none transition placeholder:text-[#9d8576] focus:border-[#2b211c]"
   }
 
-  return "mt-2 w-full rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-4 text-white outline-none transition placeholder:text-zinc-700 focus:border-white"
+  return "mt-2 w-full rounded-[1.2rem] border border-zinc-800 bg-zinc-950 px-4 py-4 text-white outline-none transition placeholder:text-zinc-700 focus:border-white"
 }
 
 function getCompactInputClasses(theme: string) {
   if (theme === "WHITE") {
-    return "mt-2 w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-zinc-950 outline-none transition placeholder:text-zinc-400 focus:border-zinc-950"
+    return "mt-2 w-full rounded-[1.2rem] border border-zinc-300 bg-white px-4 py-3 text-zinc-950 outline-none transition placeholder:text-zinc-400 focus:border-zinc-950"
   }
 
   if (theme === "NUDE") {
-    return "mt-2 w-full rounded-2xl border border-[#d8beb0] bg-white px-4 py-3 text-[#2b211c] outline-none transition placeholder:text-[#9d8576] focus:border-[#2b211c]"
+    return "mt-2 w-full rounded-[1.2rem] border border-[#d8beb0] bg-white px-4 py-3 text-[#2b211c] outline-none transition placeholder:text-[#9d8576] focus:border-[#2b211c]"
   }
 
-  return "mt-2 w-full rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white outline-none transition placeholder:text-zinc-700 focus:border-white"
+  return "mt-2 w-full rounded-[1.2rem] border border-zinc-800 bg-zinc-950 px-4 py-3 text-white outline-none transition placeholder:text-zinc-700 focus:border-white"
 }
 
 function getSelectClasses(theme: string) {
   if (theme === "WHITE") {
-    return "appearance-none rounded-2xl border border-zinc-300 bg-white px-4 py-4 text-zinc-950 outline-none transition focus:border-zinc-950"
+    return "appearance-none rounded-[1.2rem] border border-zinc-300 bg-white px-4 py-4 text-zinc-950 outline-none transition focus:border-zinc-950"
   }
 
   if (theme === "NUDE") {
-    return "appearance-none rounded-2xl border border-[#d8beb0] bg-white px-4 py-4 text-[#2b211c] outline-none transition focus:border-[#2b211c]"
+    return "appearance-none rounded-[1.2rem] border border-[#d8beb0] bg-white px-4 py-4 text-[#2b211c] outline-none transition focus:border-[#2b211c]"
   }
 
-  return "appearance-none rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-4 text-white outline-none transition focus:border-white"
+  return "appearance-none rounded-[1.2rem] border border-zinc-800 bg-zinc-950 px-4 py-4 text-white outline-none transition focus:border-white"
 }
 
 function getCompactSelectClasses(theme: string) {
   if (theme === "WHITE") {
-    return "appearance-none rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-zinc-950 outline-none transition focus:border-zinc-950"
+    return "appearance-none rounded-[1.2rem] border border-zinc-300 bg-white px-4 py-3 text-zinc-950 outline-none transition focus:border-zinc-950"
   }
 
   if (theme === "NUDE") {
-    return "appearance-none rounded-2xl border border-[#d8beb0] bg-white px-4 py-3 text-[#2b211c] outline-none transition focus:border-[#2b211c]"
+    return "appearance-none rounded-[1.2rem] border border-[#d8beb0] bg-white px-4 py-3 text-[#2b211c] outline-none transition focus:border-[#2b211c]"
   }
 
-  return "appearance-none rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-white"
+  return "appearance-none rounded-[1.2rem] border border-zinc-800 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-white"
 }
 
 function getServiceStatusClasses(active: boolean) {
@@ -184,7 +184,7 @@ function MoveServiceButtons({ serviceId, theme }: MoveServiceButtonsProps) {
 
         <button
           type="submit"
-          className={`w-full rounded-2xl border px-3 py-3 text-sm font-semibold transition ${theme.secondaryButton}`}
+          className={`w-full rounded-full border px-3 py-3 text-sm font-semibold transition ${theme.secondaryButton}`}
         >
           Subir
         </button>
@@ -196,7 +196,7 @@ function MoveServiceButtons({ serviceId, theme }: MoveServiceButtonsProps) {
 
         <button
           type="submit"
-          className={`w-full rounded-2xl border px-3 py-3 text-sm font-semibold transition ${theme.secondaryButton}`}
+          className={`w-full rounded-full border px-3 py-3 text-sm font-semibold transition ${theme.secondaryButton}`}
         >
           Descer
         </button>
@@ -219,7 +219,7 @@ function MoveCategoryButtons({ categoryId, theme }: MoveCategoryButtonsProps) {
 
         <button
           type="submit"
-          className={`w-full rounded-2xl border px-3 py-3 text-sm font-semibold transition ${theme.secondaryButton}`}
+          className={`w-full rounded-full border px-3 py-3 text-sm font-semibold transition ${theme.secondaryButton}`}
         >
           Subir
         </button>
@@ -231,7 +231,7 @@ function MoveCategoryButtons({ categoryId, theme }: MoveCategoryButtonsProps) {
 
         <button
           type="submit"
-          className={`w-full rounded-2xl border px-3 py-3 text-sm font-semibold transition ${theme.secondaryButton}`}
+          className={`w-full rounded-full border px-3 py-3 text-sm font-semibold transition ${theme.secondaryButton}`}
         >
           Descer
         </button>
@@ -259,7 +259,7 @@ function ServiceCard({
 
   return (
     <div
-      className={`rounded-3xl border p-5 ${
+      className={`rounded-[1.8rem] border p-5 ${
         service.active ? theme.card : `${theme.card} opacity-80`
       }`}
     >
@@ -316,7 +316,7 @@ function ServiceCard({
 
             <button
               type="submit"
-              className={`w-full rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
+              className={`w-full rounded-full border px-4 py-3 text-sm font-semibold transition ${
                 service.active ? theme.secondaryButton : theme.primaryButton
               }`}
             >
@@ -330,14 +330,14 @@ function ServiceCard({
 
               <button
                 type="submit"
-                className="w-full rounded-2xl border border-red-300 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800 transition hover:border-red-500"
+                className="w-full rounded-[1.2rem] border border-red-300 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800 transition hover:border-red-500"
               >
                 Apagar
               </button>
             </form>
           ) : (
             <div
-              className={`rounded-2xl border px-4 py-3 text-center text-xs font-medium ${theme.badge}`}
+              className={`rounded-full border px-4 py-3 text-center text-xs font-medium ${theme.badge}`}
             >
               Não pode apagar
             </div>
@@ -421,7 +421,7 @@ function ServiceCard({
 
         <button
           type="submit"
-          className={`rounded-2xl border px-5 py-3 font-semibold transition ${theme.secondaryButton}`}
+          className={`rounded-full border px-5 py-3 font-semibold transition ${theme.secondaryButton}`}
         >
           Guardar alterações
         </button>
@@ -453,7 +453,7 @@ function ServiceGroup({
 
   return (
     <div className="grid gap-4">
-      <div className={`rounded-2xl border px-5 py-4 ${theme.cardStrong}`}>
+      <div className={`rounded-[1.7rem] border px-5 py-4 ${theme.cardStrong}`}>
         <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
           Categoria
         </p>
@@ -565,8 +565,8 @@ export default async function DashboardServicesPage({
 
   return (
     <main className={`min-h-screen ${theme.page}`}>
-      <section className="mx-auto max-w-7xl px-6 py-10">
-        <div className={`rounded-[2rem] border p-8 shadow-2xl ${theme.hero}`}>
+      <section className="mx-auto max-w-[88rem] px-5 py-8 sm:px-6 lg:py-10">
+        <div className={`rounded-[2.3rem] border p-8 shadow-2xl lg:p-10 ${theme.hero}`}>
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className={`text-sm uppercase tracking-[0.3em] ${theme.subtle}`}>
@@ -588,14 +588,14 @@ export default async function DashboardServicesPage({
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/dashboard"
-                className={`rounded-2xl border px-5 py-3 text-center font-semibold transition ${theme.secondaryButton}`}
+                className={`rounded-full border px-5 py-3 text-center font-semibold transition ${theme.secondaryButton}`}
               >
                 Voltar ao painel
               </Link>
 
               <Link
                 href={`/book/${business.slug}`}
-                className={`rounded-2xl border px-5 py-3 text-center font-semibold transition ${theme.primaryButton}`}
+                className={`rounded-full border px-5 py-3 text-center font-semibold transition ${theme.primaryButton}`}
               >
                 Abrir página pública
               </Link>
@@ -603,7 +603,7 @@ export default async function DashboardServicesPage({
           </div>
 
           <div className="mt-8 grid gap-4 md:grid-cols-5">
-            <div className={`rounded-3xl border p-5 ${theme.card}`}>
+            <div className={`rounded-[1.7rem] border p-5 ${theme.card}`}>
               <p className={`text-sm ${theme.muted}`}>Categorias</p>
 
               <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
@@ -611,7 +611,7 @@ export default async function DashboardServicesPage({
               </p>
             </div>
 
-            <div className={`rounded-3xl border p-5 ${theme.card}`}>
+            <div className={`rounded-[1.7rem] border p-5 ${theme.card}`}>
               <p className={`text-sm ${theme.muted}`}>Total de serviços</p>
 
               <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
@@ -619,7 +619,7 @@ export default async function DashboardServicesPage({
               </p>
             </div>
 
-            <div className={`rounded-3xl border p-5 ${theme.card}`}>
+            <div className={`rounded-[1.7rem] border p-5 ${theme.card}`}>
               <p className={`text-sm ${theme.muted}`}>Ativos</p>
 
               <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
@@ -627,7 +627,7 @@ export default async function DashboardServicesPage({
               </p>
             </div>
 
-            <div className={`rounded-3xl border p-5 ${theme.card}`}>
+            <div className={`rounded-[1.7rem] border p-5 ${theme.card}`}>
               <p className={`text-sm ${theme.muted}`}>Desativados</p>
 
               <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
@@ -635,7 +635,7 @@ export default async function DashboardServicesPage({
               </p>
             </div>
 
-            <div className={`rounded-3xl border p-5 ${theme.card}`}>
+            <div className={`rounded-[1.7rem] border p-5 ${theme.card}`}>
               <p className={`text-sm ${theme.muted}`}>Podem ser apagados</p>
 
               <p className={`mt-2 text-3xl font-bold ${theme.title}`}>
@@ -657,9 +657,9 @@ export default async function DashboardServicesPage({
           </div>
         )}
 
-        <div className="mt-8 grid gap-8 lg:grid-cols-[430px_1fr]">
+        <div className="mt-8 grid gap-8 lg:grid-cols-[400px_1fr]">
           <div className="grid gap-8">
-            <div className={`rounded-[2rem] border p-6 shadow-2xl ${theme.panel}`}>
+            <div className={`rounded-[2.2rem] border p-6 shadow-2xl ${theme.panel}`}>
               <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
                 Nova categoria
               </p>
@@ -691,7 +691,7 @@ export default async function DashboardServicesPage({
 
                 <button
                   type="submit"
-                  className={`rounded-2xl border px-5 py-4 font-semibold transition ${theme.primaryButton}`}
+                  className={`rounded-full border px-5 py-4 font-semibold transition ${theme.primaryButton}`}
                 >
                   Criar categoria
                 </button>
@@ -748,7 +748,7 @@ export default async function DashboardServicesPage({
 
                         <button
                           type="submit"
-                          className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${theme.secondaryButton}`}
+                          className={`rounded-full border px-4 py-3 text-sm font-semibold transition ${theme.secondaryButton}`}
                         >
                           Guardar nome
                         </button>
@@ -763,7 +763,7 @@ export default async function DashboardServicesPage({
 
                         <button
                           type="submit"
-                          className="w-full rounded-2xl border border-red-300 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800 transition hover:border-red-500"
+                          className="w-full rounded-[1.2rem] border border-red-300 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800 transition hover:border-red-500"
                         >
                           Apagar categoria
                         </button>
@@ -774,7 +774,7 @@ export default async function DashboardServicesPage({
               )}
             </div>
 
-            <div className={`rounded-[2rem] border p-6 shadow-2xl ${theme.panel}`}>
+            <div className={`rounded-[2.2rem] border p-6 shadow-2xl ${theme.panel}`}>
               <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
                 Novo serviço
               </p>
@@ -861,7 +861,7 @@ export default async function DashboardServicesPage({
 
                 <button
                   type="submit"
-                  className={`mt-2 rounded-2xl border px-5 py-4 font-semibold transition ${theme.primaryButton}`}
+                  className={`mt-2 rounded-full border px-5 py-4 font-semibold transition ${theme.primaryButton}`}
                 >
                   Criar serviço
                 </button>
@@ -877,7 +877,7 @@ export default async function DashboardServicesPage({
           </div>
 
           <div className="grid gap-8">
-            <div className={`rounded-[2rem] border p-4 shadow-2xl ${theme.panel}`}>
+            <div className={`rounded-[2.2rem] border p-5 shadow-2xl ${theme.panel}`}>
               <div className={`border-b px-2 pb-4 ${theme.line}`}>
                 <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
                   Disponíveis ao cliente
@@ -926,7 +926,7 @@ export default async function DashboardServicesPage({
               )}
             </div>
 
-            <div className={`rounded-[2rem] border p-4 shadow-2xl ${theme.panel}`}>
+            <div className={`rounded-[2.2rem] border p-5 shadow-2xl ${theme.panel}`}>
               <div className={`border-b px-2 pb-4 ${theme.line}`}>
                 <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.subtle}`}>
                   Arquivo

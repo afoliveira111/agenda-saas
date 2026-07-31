@@ -417,7 +417,7 @@ export default async function BookingPage({
                   Marcação online
                 </p>
 
-                <h1 className="mt-7 max-w-3xl font-serif text-5xl leading-[0.95] tracking-[-0.05em] sm:text-6xl lg:text-7xl">
+                <h1 className="mt-7 max-w-3xl font-serif text-5xl leading-[0.95] tracking-[-0.055em] sm:text-6xl lg:text-7xl">
                   {business.name}
                 </h1>
 
