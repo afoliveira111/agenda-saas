@@ -191,6 +191,21 @@ model BlockedDay {
   @@index([businessId, date])
 }
 
+model ContactLead {
+  id           String   @id @default(cuid())
+  name         String
+  email        String
+  phone        String?
+  businessType String?
+  message      String?
+  source       String   @default("demos")
+
+  createdAt    DateTime @default(now())
+
+  @@index([email])
+  @@index([createdAt])
+}
+
 enum UserRole {
   ADMIN
   OWNER
