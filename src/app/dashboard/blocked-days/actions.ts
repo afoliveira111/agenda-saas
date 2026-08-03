@@ -2,8 +2,8 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
-import { prisma } from "@/lib/prisma"
 import { getCurrentBusinessSlug } from "@/lib/current-business"
+import { prisma } from "@/lib/prisma"
 
 function redirectWithError(message: string): never {
   redirect(`/dashboard/blocked-days?error=${encodeURIComponent(message)}`)
@@ -24,13 +24,29 @@ function parseDate(dateParam: string) {
     return null
   }
 
-  return new Date(year, month - 1, day, 0, 0, 0, 0)
+  const parsedDate = new Date(year, month - 1, day, 0, 0, 0, 0)
+
+  if (
+    parsedDate.getFullYear() !== year ||
+    parsedDate.getMonth() !== month - 1 ||
+    parsedDate.getDate() !== day
+  ) {
+    return null
+  }
+
+  return parsedDate
 }
 
 function addDays(date: Date, days: number) {
   const result = new Date(date)
   result.setDate(result.getDate() + days)
   return result
+}
+
+function getTodayStart() {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  return today
 }
 
 function getDaysBetween(startDate: Date, endDate: Date) {
@@ -46,10 +62,10 @@ function getDaysBetween(startDate: Date, endDate: Date) {
   return days
 }
 
-async function getDemoBusiness() {
+async function getCurrentBusiness() {
   return prisma.business.findUnique({
     where: {
-      slug: (await getCurrentBusinessSlug()),
+      slug: await getCurrentBusinessSlug(),
     },
   })
 }
@@ -70,6 +86,16 @@ export async function createBlockedDaysAction(formData: FormData) {
     redirectWithError("Informe uma data válida.")
   }
 
+  const today = getTodayStart()
+
+  if (dateFrom < today) {
+    redirectWithError("A data inicial não pode ser anterior a hoje.")
+  }
+
+  if (dateTo < today) {
+    redirectWithError("A data final não pode ser anterior a hoje.")
+  }
+
   if (dateTo < dateFrom) {
     redirectWithError("A data final não pode ser anterior à data inicial.")
   }
@@ -80,10 +106,10 @@ export async function createBlockedDaysAction(formData: FormData) {
     redirectWithError("O bloqueio não pode ter mais de 90 dias de uma vez.")
   }
 
-  const business = await getDemoBusiness()
+  const business = await getCurrentBusiness()
 
   if (!business) {
-    redirectWithError("Negócio demo não encontrado.")
+    redirectWithError("Negócio não encontrado.")
   }
 
   await prisma.$transaction(async (tx) => {
@@ -129,17 +155,22 @@ export async function deleteBlockedDayAction(formData: FormData) {
     redirectWithError("Bloqueio não encontrado.")
   }
 
-  const business = await getDemoBusiness()
+  const business = await getCurrentBusiness()
 
   if (!business) {
-    redirectWithError("Negócio demo não encontrado.")
+    redirectWithError("Negócio não encontrado.")
   }
 
-  await prisma.blockedDay.delete({
+  const deleteResult = await prisma.blockedDay.deleteMany({
     where: {
       id: blockedDayId,
+      businessId: business.id,
     },
   })
+
+  if (deleteResult.count === 0) {
+    redirectWithError("Bloqueio não encontrado para este negócio.")
+  }
 
   revalidatePath("/dashboard/blocked-days")
   revalidatePath(`/book/${business.slug}`)
