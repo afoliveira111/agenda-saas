@@ -108,6 +108,10 @@ function hasBookingConflict(
   })
 }
 
+function getBookingLockKey(businessId: string, dateParam: string) {
+  return `booking:${businessId}:${dateParam}`
+}
+
 function normalizeName(name: string) {
   return name.trim().replace(/\s+/g, " ")
 }
@@ -326,6 +330,13 @@ export async function createBookingAction(
   }
 
   const booking = await prisma.$transaction(async (tx) => {
+    await tx.$executeRaw`
+      SELECT pg_advisory_xact_lock(hashtextextended(${getBookingLockKey(
+        business.id,
+        date
+      )}, 0))
+    `
+
     const existingBookings = await tx.booking.findMany({
       where: {
         businessId: business.id,
