@@ -2,16 +2,17 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
 function isAuthorized(request: NextRequest) {
-  const secret = process.env.REMINDERS_API_SECRET
+  const secret =
+    process.env.CRON_SECRET?.trim() ||
+    process.env.REMINDERS_API_SECRET?.trim()
 
   if (!secret) {
-    return true
+    return process.env.NODE_ENV !== "production"
   }
 
   const authorization = request.headers.get("authorization")
-  const secretFromUrl = request.nextUrl.searchParams.get("secret")
 
-  return authorization === `Bearer ${secret}` || secretFromUrl === secret
+  return authorization === `Bearer ${secret}`
 }
 
 export async function GET(request: NextRequest) {
