@@ -405,19 +405,19 @@ export default async function BookingPage({
       <section className="relative overflow-hidden">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_15%,rgba(215,185,138,0.10),transparent_28%),radial-gradient(circle_at_80%_12%,rgba(215,185,138,0.12),transparent_24%)]" />
 
-        <div className="relative mx-auto max-w-[88rem] px-5 py-8 sm:px-6 lg:py-12">
+        <div className="relative mx-auto max-w-[88rem] px-2.5 py-3 sm:px-6 sm:py-8 lg:py-12">
           <div
             className={`overflow-hidden rounded-[2.5rem] border backdrop-blur ${theme.heroPanel}`}
           >
             <div className="grid gap-0 lg:grid-cols-[1.25fr_0.75fr]">
-              <div className="px-6 py-10 sm:px-10 lg:px-14 lg:py-14">
+              <div className="px-4 py-6 sm:px-10 sm:py-10 lg:px-14 lg:py-14">
                 <p
                   className={`inline-flex rounded-full border px-5 py-2 text-xs font-bold uppercase tracking-[0.35em] ${theme.badge}`}
                 >
                   Marcação online
                 </p>
 
-                <h1 className="mt-7 max-w-3xl font-serif text-5xl leading-[0.95] tracking-[-0.055em] sm:text-6xl lg:text-7xl">
+                <h1 className="mt-5 max-w-3xl font-serif text-[2.55rem] leading-[0.96] tracking-[-0.055em] sm:mt-7 sm:text-6xl lg:text-7xl">
                   {business.name}
                 </h1>
 
@@ -425,13 +425,13 @@ export default async function BookingPage({
 
                 {business.description ? (
                   <p
-                    className={`mt-6 max-w-2xl text-base leading-8 sm:text-lg ${theme.muted}`}
+                    className={`mt-5 max-w-2xl text-[0.98rem] leading-7 sm:mt-6 sm:text-lg sm:leading-8 ${theme.muted}`}
                   >
                     {business.description}
                   </p>
                 ) : (
                   <p
-                    className={`mt-6 max-w-2xl text-base leading-8 sm:text-lg ${theme.muted}`}
+                    className={`mt-5 max-w-2xl text-[0.98rem] leading-7 sm:mt-6 sm:text-lg sm:leading-8 ${theme.muted}`}
                   >
                     Escolha o serviço, selecione uma data disponível e confirme
                     a sua marcação online em poucos passos.
@@ -439,38 +439,38 @@ export default async function BookingPage({
                 )}
 
                 {hasContactInfo && (
-                  <div className="mt-8 grid gap-3 md:grid-cols-[1fr_1fr_1.45fr]">
+                  <div className="mt-7 grid gap-3 sm:grid-cols-2 md:grid-cols-[1fr_1fr_1.45fr]">
                     {business.address && (
-                      <div className={`rounded-2xl border p-4 ${theme.card}`}>
+                      <div className={`rounded-[1.1rem] border p-3.5 sm:rounded-2xl sm:p-4 ${theme.card}`}>
                         <p className={`text-xs font-bold uppercase tracking-[0.28em] ${theme.softMuted}`}>
                           Local
                         </p>
 
-                        <p className="mt-2 break-words text-base font-medium leading-6">
+                        <p className="mt-2 break-words text-[0.95rem] font-medium leading-6 sm:text-base">
                           {business.address}
                         </p>
                       </div>
                     )}
 
                     {phoneDisplay && (
-                      <div className={`rounded-2xl border p-4 ${theme.card}`}>
+                      <div className={`rounded-[1.1rem] border p-3.5 sm:rounded-2xl sm:p-4 ${theme.card}`}>
                         <p className={`text-xs font-bold uppercase tracking-[0.28em] ${theme.softMuted}`}>
                           Telefone
                         </p>
 
-                        <p className="mt-2 break-words text-base font-medium leading-6">
+                        <p className="mt-2 break-words text-[0.95rem] font-medium leading-6 sm:text-base">
                           {phoneDisplay}
                         </p>
                       </div>
                     )}
 
                     {business.email && (
-                      <div className={`rounded-2xl border p-4 ${theme.card}`}>
+                      <div className={`rounded-[1.1rem] border p-3.5 sm:rounded-2xl sm:p-4 ${theme.card}`}>
                         <p className={`text-xs font-bold uppercase tracking-[0.28em] ${theme.softMuted}`}>
                           E-mail
                         </p>
 
-                        <p className="mt-2 break-all text-base font-medium leading-6">
+                        <p className="mt-2 break-all text-[0.95rem] font-medium leading-6 sm:text-base">
                           {business.email}
                         </p>
                       </div>
@@ -478,28 +478,28 @@ export default async function BookingPage({
                   </div>
                 )}
 
-                <div className="mt-9">
+                <div className="mt-8 sm:mt-9">
                   <p
                     className={`text-xs font-bold uppercase tracking-[0.35em] ${theme.softMuted}`}
                   >
                     Como funciona
                   </p>
 
-                  <div className="mt-5 grid gap-5 sm:grid-cols-3">
+                  <div className="mt-4 grid gap-3 sm:grid-cols-3 sm:gap-5">
                     {[
                       ["1", "Escolha", "Selecione um ou mais serviços."],
                       ["2", "Agende", "Escolha uma data e horário disponível."],
                       ["3", "Confirme", "Preencha os dados e receba a confirmação."],
                     ].map(([number, title, description], index) => (
-                      <div key={title} className="flex gap-4">
+                      <div key={title} className="flex gap-3 sm:gap-4">
                         <div
-                          className={`flex size-10 shrink-0 items-center justify-center rounded-full border text-lg font-semibold ${theme.badge}`}
+                          className={`flex size-9 shrink-0 items-center justify-center rounded-full border text-base font-semibold sm:size-10 sm:text-lg ${theme.badge}`}
                         >
                           {number}
                         </div>
 
                         <div className="min-w-0">
-                          <p className="font-serif text-xl font-semibold">
+                          <p className="font-serif text-lg font-semibold sm:text-xl">
                             {title}
                           </p>
 
@@ -521,8 +521,8 @@ export default async function BookingPage({
                 </div>
               </div>
 
-              <div className="border-t border-current/10 px-6 py-8 sm:px-10 lg:border-l lg:border-t-0 lg:px-8 lg:py-12">
-                <div className={`rounded-[2.2rem] border p-5 ${theme.logoPanel}`}>
+              <div className="border-t border-current/10 px-4 py-6 sm:px-10 sm:py-8 lg:border-l lg:border-t-0 lg:px-8 lg:py-12">
+                <div className={`rounded-[1.5rem] border p-4 sm:rounded-[2.2rem] sm:p-5 ${theme.logoPanel}`}>
                   <p
                     className={`text-center text-xs font-bold uppercase tracking-[0.35em] ${theme.softMuted}`}
                   >
@@ -531,16 +531,14 @@ export default async function BookingPage({
 
                   {businessLogo ? (
                     <div className="mt-7 flex items-center justify-center">
-                      <div
-                        className={`flex size-64 items-center justify-center rounded-full border p-8 shadow-2xl ${theme.logoBox}`}
-                      >
+                      <div className="mx-auto flex size-44 items-center justify-center overflow-hidden rounded-full border border-[#eadfce] bg-white p-0 shadow-2xl shadow-black/10 sm:size-64">
                         <Image
                           src={businessLogo}
                           alt={`Logo ${business.name}`}
-                          width={360}
-                          height={360}
+                          width={420}
+                          height={420}
                           priority
-                          className="h-auto max-h-48 w-auto max-w-full object-contain"
+                          className="h-auto max-h-56 w-auto max-w-[135%] rotate-[2deg] scale-125 object-contain invert sm:max-h-80"
                         />
                       </div>
                     </div>
@@ -559,7 +557,7 @@ export default async function BookingPage({
                   </p>
 
                   <div className="mt-7 grid gap-3 sm:grid-cols-2">
-                    <div className={`rounded-2xl border p-4 ${theme.card}`}>
+                    <div className={`rounded-[1.1rem] border p-3.5 sm:rounded-2xl sm:p-4 ${theme.card}`}>
                       <p
                         className={`text-xs font-bold uppercase tracking-[0.25em] ${theme.softMuted}`}
                       >
@@ -571,7 +569,7 @@ export default async function BookingPage({
                       </p>
                     </div>
 
-                    <div className={`rounded-2xl border p-4 ${theme.card}`}>
+                    <div className={`rounded-[1.1rem] border p-3.5 sm:rounded-2xl sm:p-4 ${theme.card}`}>
                       <p
                         className={`text-xs font-bold uppercase tracking-[0.25em] ${theme.softMuted}`}
                       >
@@ -587,7 +585,7 @@ export default async function BookingPage({
               </div>
             </div>
 
-            <div className="border-t border-current/10 px-6 py-10 sm:px-10 lg:px-12">
+            <div className="border-t border-current/10 px-4 py-6 sm:px-10 sm:py-10 lg:px-12">
               <div id="servicos" className="scroll-mt-8">
                 <div className="text-center">
                   <p
@@ -596,7 +594,7 @@ export default async function BookingPage({
                     Passo 1
                   </p>
 
-                  <h2 className="mt-3 font-serif text-4xl tracking-[-0.03em] sm:text-5xl">
+                  <h2 className="mt-3 font-serif text-[2.15rem] leading-tight tracking-[-0.03em] sm:text-5xl">
                     Escolha os serviços
                   </h2>
 
@@ -623,7 +621,7 @@ export default async function BookingPage({
                     </p>
                   </div>
                 ) : (
-                  <div className="mt-10 grid gap-6 lg:grid-cols-[250px_1fr]">
+                  <div className="mt-8 grid gap-5 sm:mt-10 sm:gap-6 lg:grid-cols-[250px_1fr]">
                     <aside className={`hidden rounded-[2rem] border p-4 lg:block ${theme.card}`}>
                       <p
                         className={`px-2 py-2 text-xs font-bold uppercase tracking-[0.3em] ${theme.muted}`}
@@ -661,16 +659,16 @@ export default async function BookingPage({
                         <section
                           id={`categoria-${group.id}`}
                           key={group.id}
-                          className={`scroll-mt-8 overflow-hidden rounded-[2rem] border ${theme.servicePanel}`}
+                          className={`scroll-mt-8 overflow-hidden rounded-[1.4rem] border sm:rounded-[2rem] ${theme.servicePanel}`}
                         >
-                          <div className="flex flex-col gap-3 border-b border-current/10 px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="flex flex-col gap-3 border-b border-current/10 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-5">
                             <div className="flex items-center gap-3">
                               <span className={`text-xl ${theme.softMuted}`}>
                                 {getCategoryIcon(groupIndex)}
                               </span>
 
                               <p
-                                className={`text-sm font-bold uppercase tracking-[0.35em] ${theme.softMuted}`}
+                                className={`text-xs font-bold uppercase tracking-[0.26em] sm:text-sm sm:tracking-[0.35em] ${theme.softMuted}`}
                               >
                                 {group.name}
                               </p>
@@ -705,14 +703,14 @@ export default async function BookingPage({
                                     date,
                                     hash: "servicos",
                                   })}
-                                  className={`block px-5 py-5 transition ${
+                                  className={`block px-4 py-4 transition sm:px-5 sm:py-5 ${
                                     isSelected
                                       ? theme.serviceSelected
                                       : "hover:bg-current/5"
                                   }`}
                                 >
                                   <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-center">
-                                    <div className="flex gap-4">
+                                    <div className="flex gap-3 sm:gap-4">
                                       <div
                                         className={`mt-1 flex size-7 shrink-0 items-center justify-center rounded-full border text-xs font-bold ${
                                           isSelected ? theme.badge : ""
@@ -722,29 +720,29 @@ export default async function BookingPage({
                                       </div>
 
                                       <div className="min-w-0">
-                                        <h4 className="font-serif text-2xl font-semibold">
+                                        <h4 className="font-serif text-[1.65rem] font-semibold leading-tight sm:text-2xl">
                                           {service.name}
                                         </h4>
 
                                         {service.description && (
-                                          <p className={`mt-2 text-sm leading-6 ${theme.muted}`}>
+                                          <p className={`mt-2 text-[0.95rem] leading-6 ${theme.muted}`}>
                                             {service.description}
                                           </p>
                                         )}
 
-                                        <p className={`mt-3 text-sm ${theme.muted}`}>
+                                        <p className={`mt-2 text-sm ${theme.muted}`}>
                                           {formatDuration(service.durationMin)}
                                         </p>
                                       </div>
                                     </div>
 
                                     <div className="flex items-center justify-between gap-4 sm:block sm:text-right">
-                                      <p className="text-xl font-black">
+                                      <p className="text-xl font-black sm:text-xl">
                                         {formatPrice(service.priceCents)}
                                       </p>
 
                                       <span
-                                        className={`flex size-11 items-center justify-center rounded-xl border text-2xl sm:mt-4 sm:ml-auto ${theme.secondaryButton}`}
+                                        className={`flex size-11 items-center justify-center rounded-[1rem] border text-2xl sm:ml-auto sm:mt-4 sm:size-11 sm:text-2xl ${theme.secondaryButton}`}
                                       >
                                         {isSelected ? "✓" : "+"}
                                       </span>
@@ -764,7 +762,7 @@ export default async function BookingPage({
               {selectedServices.length > 0 && (
                 <div
                   id="resumo"
-                  className={`mt-10 scroll-mt-8 rounded-[2rem] border p-6 shadow-xl ${theme.card}`}
+                  className={`mt-8 scroll-mt-8 rounded-[1.7rem] border p-5 shadow-xl sm:mt-10 sm:rounded-[2rem] sm:p-6 ${theme.card}`}
                 >
                   <p
                     className={`text-xs font-bold uppercase tracking-[0.3em] ${theme.softMuted}`}
@@ -793,7 +791,7 @@ export default async function BookingPage({
                     ))}
                   </div>
 
-                  <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                  <div className="mt-5 grid gap-3 sm:mt-6 sm:grid-cols-2">
                     <div
                       className={`rounded-2xl border p-4 ${theme.cardStrong}`}
                     >
@@ -826,14 +824,14 @@ export default async function BookingPage({
               )}
 
               {selectedServices.length > 0 && (
-                <div id="datas" className="mt-10 scroll-mt-8">
+                <div id="datas" className="mt-8 scroll-mt-8 sm:mt-10">
                   <p
                     className={`text-xs font-bold uppercase tracking-[0.3em] ${theme.softMuted}`}
                   >
                     Passo 2
                   </p>
 
-                  <h2 className="mt-3 font-serif text-3xl font-semibold tracking-tight">
+                  <h2 className="mt-3 font-serif text-2xl font-semibold tracking-tight sm:text-3xl">
                     Escolha uma data
                   </h2>
 
@@ -841,7 +839,7 @@ export default async function BookingPage({
                     Apenas os dias com atendimento disponível ficam selecionáveis.
                   </p>
 
-                  <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  <div className="mt-5 grid grid-cols-2 gap-2 sm:mt-6 sm:grid-cols-3 sm:gap-3">
                     {availableDates.map((item) => {
                       const isSelected = item.dateParam === date
 
@@ -849,7 +847,7 @@ export default async function BookingPage({
                         return (
                           <div
                             key={item.dateParam}
-                            className={`rounded-2xl border px-4 py-4 text-center text-sm opacity-40 ${theme.card}`}
+                            className={`rounded-[1rem] border px-2.5 py-3 text-center text-xs opacity-40 sm:rounded-2xl sm:px-4 sm:py-4 sm:text-sm ${theme.card}`}
                           >
                             {item.label}
 
@@ -867,7 +865,7 @@ export default async function BookingPage({
                             date: item.dateParam,
                             hash: "horarios",
                           })}
-                          className={`rounded-2xl border px-4 py-4 text-center text-sm font-semibold transition ${
+                          className={`rounded-[1rem] border px-2.5 py-3 text-center text-xs font-semibold transition sm:rounded-2xl sm:px-4 sm:py-4 sm:text-sm ${
                             isSelected
                               ? `${theme.primaryButton} shadow-lg`
                               : `${theme.card} hover:scale-[1.01]`
@@ -882,14 +880,14 @@ export default async function BookingPage({
               )}
 
               {selectedServices.length > 0 && date && (
-                <div id="horarios" className="mt-10 scroll-mt-8">
+                <div id="horarios" className="mt-8 scroll-mt-8 sm:mt-10">
                   <p
                     className={`text-xs font-bold uppercase tracking-[0.3em] ${theme.softMuted}`}
                   >
                     Passo 3
                   </p>
 
-                  <h2 className="mt-3 font-serif text-3xl font-semibold tracking-tight">
+                  <h2 className="mt-3 font-serif text-2xl font-semibold tracking-tight sm:text-3xl">
                     Escolha um horário
                   </h2>
 
@@ -899,7 +897,7 @@ export default async function BookingPage({
                   </p>
 
                   {availableSlots.length > 0 ? (
-                    <div className="mt-6 grid grid-cols-3 gap-3 sm:grid-cols-4">
+                    <div className="mt-5 grid grid-cols-3 gap-2.5 sm:mt-6 sm:grid-cols-4 sm:gap-3">
                       {availableSlots.map((slot) => {
                         const isSelected = slot === time
 
@@ -913,7 +911,7 @@ export default async function BookingPage({
                               time: slot,
                               hash: "confirmacao",
                             })}
-                            className={`rounded-2xl border px-4 py-4 text-center font-semibold transition ${
+                            className={`rounded-[1.1rem] border px-3 py-3 text-center text-sm font-semibold transition sm:rounded-2xl sm:px-4 sm:py-4 ${
                               isSelected
                                 ? `${theme.primaryButton} shadow-lg`
                                 : `${theme.card} hover:scale-[1.01]`

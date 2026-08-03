@@ -49,11 +49,11 @@ const steps = [
 function BrandMark() {
   return (
     <div className="flex items-center gap-3">
-      <div className="flex size-10 items-center justify-center rounded-full border border-[#d7b98a]/40 bg-[#d7b98a]/10 text-sm font-black tracking-[-0.08em] text-[#f0dcc1]">
+      <div className="flex size-9 items-center justify-center rounded-full border border-[#d7b98a]/40 bg-[#d7b98a]/10 text-xs font-black tracking-[-0.08em] text-[#f0dcc1] sm:size-10 sm:text-sm">
         MF
       </div>
 
-      <span className="text-2xl font-black tracking-tight text-white">
+      <span className="text-xl font-black tracking-tight text-white sm:text-2xl">
         MarcaFlow
       </span>
     </div>
@@ -65,8 +65,8 @@ function DashboardPreview() {
     <div className="relative">
       <div className="absolute -inset-10 rounded-full bg-[#d7b98a]/20 blur-3xl" />
 
-      <div className="relative rounded-[2.5rem] border border-[#d7b98a]/35 bg-black/55 p-4 shadow-2xl shadow-black/70 backdrop-blur">
-        <div className="rounded-[2rem] border border-white/10 bg-[#101011]/95 p-7">
+      <div className="relative rounded-[2rem] border border-[#d7b98a]/35 bg-black/55 p-3 shadow-2xl shadow-black/70 backdrop-blur sm:rounded-[2.5rem] sm:p-4">
+        <div className="rounded-[1.6rem] border border-white/10 bg-[#101011]/95 p-5 sm:rounded-[2rem] sm:p-7">
           <div className="flex items-start justify-between border-b border-white/10 pb-6">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.35em] text-[#d7b98a]/70">
@@ -83,31 +83,31 @@ function DashboardPreview() {
             </span>
           </div>
 
-          <div className="mt-7 grid grid-cols-2 gap-4">
-            <div className="rounded-2xl border border-[#d7b98a]/35 bg-gradient-to-br from-[#3b2f20] to-[#181818] p-5 shadow-[0_0_35px_rgba(215,185,138,0.13)]">
+          <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-7 sm:gap-4">
+            <div className="rounded-[1.2rem] border border-[#d7b98a]/35 bg-gradient-to-br from-[#3b2f20] to-[#181818] p-4 shadow-[0_0_35px_rgba(215,185,138,0.13)] sm:rounded-2xl sm:p-5">
               <p className="text-sm font-semibold text-zinc-300">
                 Próximas marcações
               </p>
 
-              <strong className="mt-3 block text-4xl text-white">12</strong>
+              <strong className="mt-3 block text-3xl text-white sm:text-4xl">12</strong>
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+            <div className="rounded-[1.2rem] border border-white/10 bg-white/[0.04] p-4 sm:rounded-2xl sm:p-5">
               <p className="text-sm font-semibold text-zinc-400">Clientes</p>
 
-              <strong className="mt-3 block text-4xl text-white">48</strong>
+              <strong className="mt-3 block text-3xl text-white sm:text-4xl">48</strong>
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+            <div className="rounded-[1.2rem] border border-white/10 bg-white/[0.04] p-4 sm:rounded-2xl sm:p-5">
               <p className="text-sm font-semibold text-zinc-400">Serviços</p>
 
-              <strong className="mt-3 block text-4xl text-white">8</strong>
+              <strong className="mt-3 block text-3xl text-white sm:text-4xl">8</strong>
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+            <div className="rounded-[1.2rem] border border-white/10 bg-white/[0.04] p-4 sm:rounded-2xl sm:p-5">
               <p className="text-sm font-semibold text-zinc-400">Lembretes</p>
 
-              <strong className="mt-3 block text-4xl text-white">Auto</strong>
+              <strong className="mt-3 block text-3xl text-white sm:text-4xl">Auto</strong>
             </div>
           </div>
 
@@ -150,7 +150,7 @@ function FeatureCard({
   description: string
 }) {
   return (
-    <div className="group rounded-[1.7rem] border border-[#d7b98a]/20 bg-black/30 p-6 backdrop-blur transition hover:border-[#d7b98a]/50 hover:bg-[#d7b98a]/[0.04]">
+    <div className="group rounded-[1.5rem] border border-[#d7b98a]/20 bg-black/30 p-5 backdrop-blur transition hover:border-[#d7b98a]/50 hover:bg-[#d7b98a]/[0.04] sm:rounded-[1.7rem] sm:p-6">
       <div className="flex items-start justify-between gap-5">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.28em] text-[#d7b98a]/70">
@@ -182,8 +182,8 @@ export default function Home() {
         <div className="absolute left-[-14rem] top-56 h-[36rem] w-[36rem] rounded-full border border-[#d7b98a]/10" />
         <div className="absolute right-[-12rem] top-40 h-[40rem] w-[40rem] rounded-full border border-[#d7b98a]/10" />
 
-        <div className="relative mx-auto flex min-h-screen max-w-7xl flex-col px-6 py-8">
-          <header className="flex items-center justify-between border-b border-white/10 pb-8">
+        <div className="relative mx-auto flex min-h-screen max-w-7xl flex-col px-5 py-6 sm:px-6 sm:py-8">
+          <header className="flex items-center justify-between border-b border-white/10 pb-6 sm:pb-8">
             <Link href="/" aria-label="MarcaFlow">
               <BrandMark />
             </Link>
@@ -204,42 +204,42 @@ export default function Home() {
 
             <Link
               href="/login"
-              className="rounded-full border border-[#d7b98a] px-7 py-3 text-base font-black text-[#f0dcc1] shadow-[0_0_25px_rgba(215,185,138,0.12)] transition hover:bg-[#f0dcc1] hover:text-zinc-950"
+              className="rounded-full border border-[#d7b98a] px-5 py-2.5 text-sm font-black text-[#f0dcc1] shadow-[0_0_25px_rgba(215,185,138,0.12)] transition hover:bg-[#f0dcc1] hover:text-zinc-950 sm:px-7 sm:py-3 sm:text-base"
             >
               Entrar
             </Link>
           </header>
 
-          <div className="grid flex-1 items-center gap-14 py-16 lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="grid flex-1 items-center gap-10 py-10 sm:py-14 lg:grid-cols-[0.9fr_1.1fr] lg:py-16">
             <div>
-              <div className="inline-flex items-center gap-3 rounded-full border border-[#d7b98a]/35 bg-black/30 px-5 py-3 text-xs font-bold uppercase tracking-[0.34em] text-[#f0dcc1] shadow-[0_0_28px_rgba(215,185,138,0.10)]">
+              <div className="inline-flex items-center gap-3 rounded-full border border-[#d7b98a]/35 bg-black/30 px-4 py-3 text-[10px] font-bold uppercase tracking-[0.26em] text-[#f0dcc1] shadow-[0_0_28px_rgba(215,185,138,0.10)] sm:px-5 sm:text-xs sm:tracking-[0.34em]">
                 Sistema de marcações online
                 <span className="size-1.5 rounded-full bg-[#f0dcc1]" />
               </div>
 
-              <h1 className="mt-7 max-w-4xl text-5xl font-black leading-[0.98] tracking-[-0.055em] text-white sm:text-6xl lg:text-7xl">
+              <h1 className="mt-6 max-w-4xl text-[3.15rem] font-black leading-[0.96] tracking-[-0.06em] text-white sm:mt-7 sm:text-6xl lg:text-7xl">
                 A experiência que seu cliente merece.
                 <span className="block bg-gradient-to-r from-[#f0dcc1] to-[#b98e52] bg-clip-text text-transparent">
                   O controle que seu negócio precisa.
                 </span>
               </h1>
 
-              <p className="mt-7 max-w-2xl text-lg leading-8 text-zinc-300">
+              <p className="mt-6 max-w-2xl text-base leading-8 text-zinc-300 sm:mt-7 sm:text-lg">
                 O MarcaFlow ajuda salões, clínicas e pequenos negócios a receber marcações online,
                 organizar clientes e reduzir o tempo gasto com mensagens manuais.
               </p>
 
-              <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center">
+              <div className="mt-8 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:items-center sm:gap-4">
                 <Link
                   href={`/book/${demoSlug}`}
-                  className="rounded-full bg-gradient-to-r from-[#f5dfbd] to-[#d7b98a] px-8 py-4 text-center font-black text-zinc-950 shadow-[0_0_35px_rgba(215,185,138,0.20)] transition hover:scale-[1.01]"
+                  className="rounded-full bg-gradient-to-r from-[#f5dfbd] to-[#d7b98a] px-7 py-4 text-center font-black text-zinc-950 shadow-[0_0_35px_rgba(215,185,138,0.20)] transition hover:scale-[1.01] sm:px-8"
                 >
                   Ver demonstração
                 </Link>
 
                 <Link
                   href="/login"
-                  className="rounded-full border border-[#d7b98a]/35 px-8 py-4 text-center font-black text-[#f0dcc1] transition hover:border-[#d7b98a] hover:bg-[#d7b98a]/10"
+                  className="rounded-full border border-[#d7b98a]/35 px-7 py-4 text-center font-black text-[#f0dcc1] transition hover:border-[#d7b98a] hover:bg-[#d7b98a]/10 sm:px-8"
                 >
                   Entrar
                 </Link>
@@ -249,7 +249,7 @@ export default function Home() {
             <DashboardPreview />
           </div>
 
-          <div className="grid gap-4 border-t border-[#d7b98a]/20 pt-7 md:grid-cols-4">
+          <div className="grid gap-3 border-t border-[#d7b98a]/20 pt-6 sm:gap-4 sm:pt-7 md:grid-cols-4">
             {features.map((feature, index) => (
               <FeatureCard
                 key={feature.title}
