@@ -1,7 +1,12 @@
 "use server"
 
+import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 import { sendBookingCreatedEmails } from "@/lib/email"
+import {
+  checkPublicBookingRateLimit,
+  recordPublicBookingAttempt,
+} from "@/lib/public-booking-rate-limit"
 import { prisma } from "@/lib/prisma"
 
 export type CreateBookingState = {
@@ -144,6 +149,28 @@ function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 
+async function getClientIp() {
+  const headerStore = await headers()
+
+  const forwardedFor = headerStore.get("x-forwarded-for")
+  const realIp = headerStore.get("x-real-ip")
+  const vercelForwardedFor = headerStore.get("x-vercel-forwarded-for")
+
+  return (
+    forwardedFor?.split(",")[0]?.trim() ||
+    vercelForwardedFor?.split(",")[0]?.trim() ||
+    realIp?.trim() ||
+    "local"
+  )
+}
+
+async function getPublicBookingRateLimitKey(slug: string) {
+  const ip = await getClientIp()
+  const safeSlug = slug || "empty-slug"
+
+  return `${ip}:${safeSlug}`
+}
+
 export async function createBookingAction(
   _previousState: CreateBookingState,
   formData: FormData
@@ -173,6 +200,18 @@ export async function createBookingAction(
       error: "Dados da marcação incompletos. Escolha serviço, data e horário.",
     }
   }
+
+  const rateLimitKey = await getPublicBookingRateLimitKey(slug)
+  const rateLimit = checkPublicBookingRateLimit(rateLimitKey)
+
+  if (!rateLimit.allowed) {
+    return {
+      error:
+        "Foram feitas muitas tentativas de marcação. Aguarde alguns minutos e tente novamente.",
+    }
+  }
+
+  recordPublicBookingAttempt(rateLimitKey)
 
   if (uniqueServiceIds.length !== serviceIds.length) {
     return {
