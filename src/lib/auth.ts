@@ -1,6 +1,5 @@
 import {
   createHash,
-  createHmac,
   randomBytes,
   scryptSync,
   timingSafeEqual,
@@ -18,82 +17,6 @@ const SESSION_DAYS = 7
 
 function hashToken(token: string) {
   return createHash("sha256").update(token).digest("hex")
-}
-
-function getSessionSecret() {
-  return (
-    process.env.AUTH_SECRET?.trim() ||
-    process.env.SESSION_SECRET?.trim() ||
-    process.env.NEXTAUTH_SECRET?.trim() ||
-    process.env.DASHBOARD_ADMIN_PASSWORD?.trim() ||
-    "agenda-saas-local-dev-secret"
-  )
-}
-
-function signValue(value: string) {
-  return createHmac("sha256", getSessionSecret()).update(value).digest("hex")
-}
-
-function createSignedSessionValue({
-  userId,
-  expiresAt,
-}: {
-  userId: string
-  expiresAt: Date
-}) {
-  const payload = `${userId}.${expiresAt.getTime()}`
-  const signature = signValue(payload)
-
-  return `${payload}.${signature}`
-}
-
-function readSignedSessionValue(value: string | undefined) {
-  if (!value) {
-    return null
-  }
-
-  const parts = value.split(".")
-
-  if (parts.length !== 3) {
-    return null
-  }
-
-  const [userId, expiresAtRaw, signature] = parts
-
-  if (!userId || !expiresAtRaw || !signature) {
-    return null
-  }
-
-  const payload = `${userId}.${expiresAtRaw}`
-  const expectedSignature = signValue(payload)
-
-  const receivedBuffer = Buffer.from(signature)
-  const expectedBuffer = Buffer.from(expectedSignature)
-
-  if (receivedBuffer.length !== expectedBuffer.length) {
-    return null
-  }
-
-  if (!timingSafeEqual(receivedBuffer, expectedBuffer)) {
-    return null
-  }
-
-  const expiresAtTime = Number(expiresAtRaw)
-
-  if (!Number.isFinite(expiresAtTime)) {
-    return null
-  }
-
-  const expiresAt = new Date(expiresAtTime)
-
-  if (expiresAt < new Date()) {
-    return null
-  }
-
-  return {
-    userId,
-    expiresAt,
-  }
 }
 
 export function createPasswordHash(password: string) {
@@ -171,37 +94,13 @@ function canAccessPath(role: string, path: string) {
   return true
 }
 
-async function getSignedCookieSession() {
-  const cookieStore = await cookies()
-
-  const signedSession = readSignedSessionValue(
-    cookieStore.get(SIGNED_SESSION_COOKIE_NAME)?.value,
-  )
-
-  if (!signedSession) {
-    return null
-  }
-
-  const user = await prisma.user.findUnique({
-    where: {
-      id: signedSession.userId,
-    },
-    include: {
-      business: true,
-    },
-  })
-
-  if (!user) {
-    return null
-  }
-
+function getCookieOptions(maxAge: number) {
   return {
-    id: "signed-cookie-session",
-    tokenHash: "",
-    userId: user.id,
-    expiresAt: signedSession.expiresAt,
-    createdAt: new Date(),
-    user,
+    httpOnly: true,
+    sameSite: "lax" as const,
+    path: "/",
+    maxAge,
+    secure: process.env.NODE_ENV === "production",
   }
 }
 
@@ -220,41 +119,24 @@ export async function createUserSession(userId: string) {
     },
   })
 
-  const signedSessionValue = createSignedSessionValue({
-    userId,
-    expiresAt,
-  })
-
   const cookieStore = await cookies()
 
   cookieStore.set({
     name: SESSION_COOKIE_NAME,
     value: token,
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * SESSION_DAYS,
-    secure: process.env.NODE_ENV === "production",
+    ...getCookieOptions(60 * 60 * 24 * SESSION_DAYS),
   })
 
   cookieStore.set({
     name: SIGNED_SESSION_COOKIE_NAME,
-    value: signedSessionValue,
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * SESSION_DAYS,
-    secure: process.env.NODE_ENV === "production",
+    value: "",
+    ...getCookieOptions(0),
   })
 
   cookieStore.set({
     name: OLD_SESSION_COOKIE_NAME,
     value: "",
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 0,
-    secure: process.env.NODE_ENV === "production",
+    ...getCookieOptions(0),
   })
 }
 
@@ -275,31 +157,19 @@ export async function clearUserSession() {
   cookieStore.set({
     name: SESSION_COOKIE_NAME,
     value: "",
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 0,
-    secure: process.env.NODE_ENV === "production",
+    ...getCookieOptions(0),
   })
 
   cookieStore.set({
     name: SIGNED_SESSION_COOKIE_NAME,
     value: "",
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 0,
-    secure: process.env.NODE_ENV === "production",
+    ...getCookieOptions(0),
   })
 
   cookieStore.set({
     name: OLD_SESSION_COOKIE_NAME,
     value: "",
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 0,
-    secure: process.env.NODE_ENV === "production",
+    ...getCookieOptions(0),
   })
 }
 
@@ -308,7 +178,7 @@ export async function getCurrentSession() {
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value
 
   if (!token) {
-    return getSignedCookieSession()
+    return null
   }
 
   const session = await prisma.session.findUnique({
@@ -325,7 +195,7 @@ export async function getCurrentSession() {
   })
 
   if (!session) {
-    return getSignedCookieSession()
+    return null
   }
 
   if (session.expiresAt < new Date()) {
@@ -337,7 +207,7 @@ export async function getCurrentSession() {
       })
       .catch(() => null)
 
-    return getSignedCookieSession()
+    return null
   }
 
   return session
