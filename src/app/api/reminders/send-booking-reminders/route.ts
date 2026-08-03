@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
 import { sendBookingReminderEmail } from "@/lib/email"
+import { prisma } from "@/lib/prisma"
 
 function addHours(date: Date, hours: number) {
   return new Date(date.getTime() + hours * 60 * 60 * 1000)
@@ -32,6 +32,7 @@ export async function GET(request: NextRequest) {
   }
 
   const testNext = request.nextUrl.searchParams.get("testNext") === "true"
+  const dryRun = request.nextUrl.searchParams.get("dryRun") === "true"
 
   const now = new Date()
 
@@ -83,6 +84,45 @@ export async function GET(request: NextRequest) {
   const results = []
 
   for (const booking of bookings) {
+    if (dryRun) {
+      results.push({
+        bookingId: booking.id,
+        customer: booking.customer.name,
+        email: booking.customer.email,
+        sent: false,
+        dryRun: true,
+        skipped: false,
+      })
+
+      continue
+    }
+
+    const claimedAt = new Date()
+
+    const claimResult = await prisma.booking.updateMany({
+      where: {
+        id: booking.id,
+        status: "CONFIRMED",
+        reminderEmailSentAt: null,
+      },
+      data: {
+        reminderEmailSentAt: claimedAt,
+      },
+    })
+
+    if (claimResult.count === 0) {
+      results.push({
+        bookingId: booking.id,
+        customer: booking.customer.name,
+        email: booking.customer.email,
+        sent: false,
+        skipped: true,
+        reason: "Lembrete já reservado ou enviado por outra execução.",
+      })
+
+      continue
+    }
+
     const sent = await sendBookingReminderEmail({
       business: {
         name: booking.business.name,
@@ -111,13 +151,14 @@ export async function GET(request: NextRequest) {
       })),
     })
 
-    if (sent) {
-      await prisma.booking.update({
+    if (!sent) {
+      await prisma.booking.updateMany({
         where: {
           id: booking.id,
+          reminderEmailSentAt: claimedAt,
         },
         data: {
-          reminderEmailSentAt: new Date(),
+          reminderEmailSentAt: null,
         },
       })
     }
@@ -127,12 +168,14 @@ export async function GET(request: NextRequest) {
       customer: booking.customer.name,
       email: booking.customer.email,
       sent,
+      skipped: false,
     })
   }
 
   return NextResponse.json({
     ok: true,
     mode: testNext ? "testNext" : "scheduled",
+    dryRun,
     found: bookings.length,
     results,
   })
