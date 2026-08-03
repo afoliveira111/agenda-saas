@@ -225,9 +225,8 @@ export default function Home() {
               </h1>
 
               <p className="mt-7 max-w-2xl text-lg leading-8 text-zinc-300">
-                O MarcaFlow ajuda salões, clínicas, estética, unhas,
-                sobrancelhas e pequenos negócios a receber marcações online,
-                organizar clientes e reduzir mensagens manuais.
+                O MarcaFlow ajuda salões, clínicas e pequenos negócios a receber marcações online,
+                organizar clientes e reduzir o tempo gasto com mensagens manuais.
               </p>
 
               <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center">
