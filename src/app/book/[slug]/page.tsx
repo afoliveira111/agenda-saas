@@ -538,7 +538,7 @@ export default async function BookingPage({
                           width={420}
                           height={420}
                           priority
-                          className="h-auto max-h-56 w-auto max-w-[135%] rotate-[2deg] scale-125 object-contain invert sm:max-h-80"
+                          className="h-auto max-h-56 w-auto max-w-[135%] translate-x-[3px] scale-125 object-contain invert sm:max-h-80"
                         />
                       </div>
                     </div>
