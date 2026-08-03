@@ -1,8 +1,20 @@
+import type { Metadata } from "next"
+import { unstable_noStore as noStore } from "next/cache"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { getPublicThemeClasses } from "@/lib/business-theme"
 import { formatDuration } from "@/lib/format-duration"
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true,
+  },
+}
+
+export const dynamic = "force-dynamic"
 
 type SuccessPageProps = {
   params: Promise<{
@@ -40,6 +52,8 @@ export default async function BookingSuccessPage({
   params,
   searchParams,
 }: SuccessPageProps) {
+  noStore()
+
   const { slug } = await params
   const { bookingId } = await searchParams
 
@@ -47,9 +61,12 @@ export default async function BookingSuccessPage({
     notFound()
   }
 
-  const booking = await prisma.booking.findUnique({
+  const booking = await prisma.booking.findFirst({
     where: {
       id: bookingId,
+      business: {
+        slug,
+      },
     },
     include: {
       business: true,
@@ -62,7 +79,7 @@ export default async function BookingSuccessPage({
     },
   })
 
-  if (!booking || booking.business.slug !== slug) {
+  if (!booking) {
     notFound()
   }
 
