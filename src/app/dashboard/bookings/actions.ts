@@ -87,6 +87,10 @@ function hasBookingConflict(
   })
 }
 
+function getBookingLockKey(businessId: string, dateParam: string) {
+  return `booking:${businessId}:${dateParam}`
+}
+
 async function getCurrentBusiness() {
   return prisma.business.findUnique({
     where: {
@@ -271,60 +275,79 @@ export async function rescheduleBookingAction(formData: FormData) {
     })
   }
 
-  const existingBookings = await prisma.booking.findMany({
-    where: {
-      businessId: business.id,
-      id: {
-        not: booking.id,
-      },
-      status: {
-        not: "CANCELLED",
-      },
-      startAt: {
-        lt: selectedDateEnd,
-      },
-      endAt: {
-        gt: selectedDateStart,
-      },
-    },
-    select: {
-      startAt: true,
-      endAt: true,
-    },
-  })
-
-  const hasConflict = hasBookingConflict(startAt, endAt, existingBookings)
-
-  if (hasConflict) {
-    redirectWithMessage({
-      view,
-      error: "Este horário já tem outra marcação. Escolha outro horário.",
-    })
-  }
-
   const previousBooking = {
     startAt: booking.startAt,
     endAt: booking.endAt,
   }
 
-  const updatedBooking = await prisma.booking.update({
-    where: {
-      id: booking.id,
-    },
-    data: {
-      startAt,
-      endAt,
-      status: "CONFIRMED",
-    },
-    include: {
-      customer: true,
-      services: {
-        include: {
-          service: true,
+  const updatedBooking = await prisma.$transaction(async (tx) => {
+    await tx.$executeRaw`
+      SELECT pg_advisory_xact_lock(hashtextextended(${getBookingLockKey(
+        business.id,
+        date,
+      )}, 0))
+    `
+
+    const existingBookings = await tx.booking.findMany({
+      where: {
+        businessId: business.id,
+        id: {
+          not: booking.id,
+        },
+        status: {
+          not: "CANCELLED",
+        },
+        startAt: {
+          lt: selectedDateEnd,
+        },
+        endAt: {
+          gt: selectedDateStart,
         },
       },
-    },
+      select: {
+        startAt: true,
+        endAt: true,
+      },
+    })
+
+    const hasConflict = hasBookingConflict(startAt, endAt, existingBookings)
+
+    if (hasConflict) {
+      throw new Error("BOOKING_CONFLICT")
+    }
+
+    return tx.booking.update({
+      where: {
+        id: booking.id,
+      },
+      data: {
+        startAt,
+        endAt,
+        status: "CONFIRMED",
+      },
+      include: {
+        customer: true,
+        services: {
+          include: {
+            service: true,
+          },
+        },
+      },
+    })
+  }).catch((error) => {
+    if (error instanceof Error && error.message === "BOOKING_CONFLICT") {
+      return null
+    }
+
+    throw error
   })
+
+  if (!updatedBooking) {
+    redirectWithMessage({
+      view,
+      error: "Este horário já tem outra marcação. Escolha outro horário.",
+    })
+  }
 
   await sendBookingRescheduledEmails({
     business: {
