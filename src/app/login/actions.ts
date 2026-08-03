@@ -1,11 +1,17 @@
 "use server"
 
+import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 import {
   createPasswordHash,
   createUserSession,
   verifyPassword,
 } from "@/lib/auth"
+import {
+  checkLoginRateLimit,
+  clearLoginRateLimit,
+  recordLoginFailure,
+} from "@/lib/login-rate-limit"
 import { prisma } from "@/lib/prisma"
 
 function normalizeText(value: FormDataEntryValue | null) {
@@ -76,17 +82,51 @@ function getRoleRedirect(role: string, nextUrl: string) {
   return safeNextUrl
 }
 
+async function getClientIp() {
+  const headerStore = await headers()
+
+  const forwardedFor = headerStore.get("x-forwarded-for")
+  const realIp = headerStore.get("x-real-ip")
+  const vercelForwardedFor = headerStore.get("x-vercel-forwarded-for")
+
+  return (
+    forwardedFor?.split(",")[0]?.trim() ||
+    vercelForwardedFor?.split(",")[0]?.trim() ||
+    realIp?.trim() ||
+    "local"
+  )
+}
+
+async function getLoginRateLimitKey(email: string) {
+  const ip = await getClientIp()
+  const safeEmail = email || "empty-email"
+
+  return `${ip}:${safeEmail}`
+}
+
+function failLogin(key: string, error: string, nextUrl: string): never {
+  recordLoginFailure(key)
+  redirectWithError(error, nextUrl)
+}
+
 export async function loginAction(formData: FormData) {
   const email = normalizeEmail(normalizeText(formData.get("email")))
   const password = normalizeText(formData.get("password"))
   const nextUrl = normalizeText(formData.get("next"))
 
+  const rateLimitKey = await getLoginRateLimitKey(email)
+  const rateLimit = checkLoginRateLimit(rateLimitKey)
+
+  if (!rateLimit.allowed) {
+    redirectWithError("rate-limit", nextUrl)
+  }
+
   if (!email || !email.includes("@")) {
-    redirectWithError("email", nextUrl)
+    failLogin(rateLimitKey, "email", nextUrl)
   }
 
   if (password.length < 4) {
-    redirectWithError("invalid", nextUrl)
+    failLogin(rateLimitKey, "invalid", nextUrl)
   }
 
   const usersCount = await prisma.user.count()
@@ -105,7 +145,7 @@ export async function loginAction(formData: FormData) {
     }
 
     if (password !== bootstrapPassword) {
-      redirectWithError("invalid", nextUrl)
+      failLogin(rateLimitKey, "invalid", nextUrl)
     }
 
     user = await prisma.user.create({
@@ -119,14 +159,16 @@ export async function loginAction(formData: FormData) {
   }
 
   if (!user) {
-    redirectWithError("invalid", nextUrl)
+    failLogin(rateLimitKey, "invalid", nextUrl)
   }
 
   const passwordIsValid = verifyPassword(password, user.passwordHash)
 
   if (!passwordIsValid) {
-    redirectWithError("invalid", nextUrl)
+    failLogin(rateLimitKey, "invalid", nextUrl)
   }
+
+  clearLoginRateLimit(rateLimitKey)
 
   await prisma.session.deleteMany({
     where: {
