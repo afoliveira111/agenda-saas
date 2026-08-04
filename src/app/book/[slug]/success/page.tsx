@@ -21,7 +21,7 @@ type SuccessPageProps = {
     slug: string
   }>
   searchParams: Promise<{
-    bookingId?: string
+    token?: string
   }>
 }
 
@@ -55,15 +55,15 @@ export default async function BookingSuccessPage({
   noStore()
 
   const { slug } = await params
-  const { bookingId } = await searchParams
+  const { token } = await searchParams
 
-  if (!bookingId) {
+  if (!token) {
     notFound()
   }
 
   const booking = await prisma.booking.findFirst({
     where: {
-      id: bookingId,
+      publicToken: token,
       business: {
         slug,
       },

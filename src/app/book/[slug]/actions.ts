@@ -1,5 +1,6 @@
 "use server"
 
+import { randomBytes } from "crypto"
 import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 import { sendBookingCreatedEmails } from "@/lib/email"
@@ -14,6 +15,10 @@ export type CreateBookingState = {
 }
 
 const PUBLIC_BOOKING_DAYS_LIMIT = 21
+
+function createPublicBookingToken() {
+  return randomBytes(32).toString("hex")
+}
 
 function addDays(date: Date, days: number) {
   const result = new Date(date)
@@ -430,6 +435,7 @@ export async function createBookingAction(
 
     return tx.booking.create({
       data: {
+        publicToken: createPublicBookingToken(),
         businessId: business.id,
         customerId: customer.id,
         startAt,
@@ -488,5 +494,11 @@ export async function createBookingAction(
     })),
   })
 
-  redirect(`/book/${slug}/success?bookingId=${booking.id}`)
+  if (!booking.publicToken) {
+    return {
+      error: "Não foi possível gerar a confirmação da marcação.",
+    }
+  }
+
+  redirect(`/book/${slug}/success?token=${booking.publicToken}`)
 }

@@ -124,6 +124,7 @@ model Customer {
 
 model Booking {
   id          String        @id @default(cuid())
+  publicToken String?       @unique
 
   businessId  String
   business    Business      @relation(fields: [businessId], references: [id])
