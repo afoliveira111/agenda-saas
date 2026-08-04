@@ -238,6 +238,9 @@ Domínio personalizado por cliente
 Notificações internas no painel
 Exportação de clientes e marcações
 App mobile ou PWA
-Autor
+
+## Autor
 
 Desenvolvido por António Felipe Aguiar de Oliveira.
+
+GitHub: afoliveira111
