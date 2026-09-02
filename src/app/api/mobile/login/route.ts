@@ -1,15 +1,46 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { getMobileSession } from "@/lib/mobile-auth"
+import { verifyPassword } from "@/lib/auth"
+import { createMobileSession } from "@/lib/mobile-auth"
 
-export async function GET(request: Request) {
+export async function POST(request: Request) {
   try {
-    const session = await getMobileSession(request)
+    const body = await request.json()
 
-    if (!session) {
+    const email =
+      typeof body.email === "string"
+        ? body.email.trim().toLowerCase()
+        : ""
+
+    const password =
+      typeof body.password === "string"
+        ? body.password
+        : ""
+
+    if (!email || !password) {
       return NextResponse.json(
         {
-          message: "Não autorizado.",
+          message: "Email e palavra-passe são obrigatórios.",
+        },
+        {
+          status: 400,
+        }
+      )
+    }
+
+    const user = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+      include: {
+        business: true,
+      },
+    })
+
+    if (!user) {
+      return NextResponse.json(
+        {
+          message: "Credenciais inválidas.",
         },
         {
           status: 401,
@@ -17,12 +48,26 @@ export async function GET(request: Request) {
       )
     }
 
-    const businessId = session.user.businessId
+    const validPassword = verifyPassword(
+      password,
+      user.passwordHash
+    )
 
-    if (!businessId) {
+    if (!validPassword) {
       return NextResponse.json(
         {
-          message: "Utilizador sem negócio associado.",
+          message: "Credenciais inválidas.",
+        },
+        {
+          status: 401,
+        }
+      )
+    }
+
+    if (!user.businessId || !user.business) {
+      return NextResponse.json(
+        {
+          message: "Este utilizador não está associado a um negócio.",
         },
         {
           status: 403,
@@ -30,84 +75,32 @@ export async function GET(request: Request) {
       )
     }
 
-    const now = new Date()
-
-    const from = new Date(now)
-    from.setUTCDate(from.getUTCDate() - 1)
-
-    const until = new Date(now)
-    until.setUTCDate(until.getUTCDate() + 7)
-
-    const bookings = await prisma.booking.findMany({
-      where: {
-        businessId,
-        startAt: {
-          gte: from,
-          lt: until,
-        },
-      },
-
-      orderBy: {
-        startAt: "asc",
-      },
-
-      select: {
-        id: true,
-        startAt: true,
-        endAt: true,
-        status: true,
-        totalPriceCents: true,
-        totalDurationMin: true,
-
-        customer: {
-          select: {
-            name: true,
-            phone: true,
-            email: true,
-          },
-        },
-
-        services: {
-          select: {
-            service: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        },
-      },
-    })
-
-    const appointments = bookings.map((booking) => ({
-      id: booking.id,
-
-      customerName: booking.customer.name,
-      customerPhone: booking.customer.phone,
-      customerEmail: booking.customer.email,
-
-      serviceName: booking.services
-        .map((item) => item.service.name)
-        .join(" + "),
-
-      startAt: booking.startAt.toISOString(),
-      endAt: booking.endAt.toISOString(),
-
-      durationMinutes: booking.totalDurationMin,
-      totalPriceCents: booking.totalPriceCents,
-
-      status: booking.status,
-    }))
+    const session = await createMobileSession(user.id)
 
     return NextResponse.json({
-      appointments,
+      token: session.token,
+
+      expiresAt: session.expiresAt.toISOString(),
+
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+
+      business: {
+        id: user.business.id,
+        name: user.business.name,
+        slug: user.business.slug,
+      },
     })
   } catch (error) {
-    console.error("Mobile appointments error:", error)
+    console.error("Mobile login error:", error)
 
     return NextResponse.json(
       {
-        message: "Não foi possível carregar os agendamentos.",
+        message: "Não foi possível iniciar sessão.",
       },
       {
         status: 500,
