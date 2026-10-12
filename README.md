@@ -8,6 +8,8 @@ Os responsáveis pelo negócio utilizam um painel administrativo para gerir serv
 
 O ecossistema também inclui uma aplicação **Android nativa desenvolvida em Kotlin e Jetpack Compose**, integrada ao mesmo backend através de REST APIs autenticadas.
 
+agenda-saas-zeta.vercel.app
+
 ---
 
 ## Estado do projeto
